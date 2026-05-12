@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -7,83 +8,76 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
 
 <!-- ============================================================
-     HOW TO EXTEND THIS PLANNER
-     ============================================================
-     1. 여행지 바꾸기:   TRIP_DATA 객체의 내용을 수정하세요.
-     2. 날짜/인원 추가:  TRIP_DATA.partyOptions 배열에 추가하세요.
-     3. 장소 추가:       day.spots 배열에 spot 객체를 추가하세요.
-     4. 비용 항목 추가:  TRIP_DATA.fixedCosts 배열에 추가하세요.
-     5. 여러 여행 지원:  TRIPS 배열에 TRIP_DATA 형태의 객체를 추가하면
-                        상단 드롭다운으로 여행 전환이 됩니다.
-     ============================================================ -->
+  HOW TO EXTEND
+  ─────────────────────────────────────────────────────────────
+  새 여행 추가  : TRIPS 배열에 trip 객체 추가
+  인원 추가    : trip.partyOptions 배열에 추가
+  일수 추가    : trip.durationOptions + trip.durationDays 에 추가
+  공항 추가    : trip.airportOptions 에 추가, days 에 variant 활용
+  장소 추가    : day.spots 배열에 spot 객체 추가
+  ============================================================ -->
 
 <style>
-/* ── RESET & BASE ────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --ink:#18120a; --paper:#faf8f3; --white:#ffffff;
-  --b1:#e2d9cc; --b2:#cec3b3; --b3:#b8aa97;
-  --muted:#7e7165; --faint:#ede7dd;
-  --gold:#c8a24a; --gold-bg:#fdf6e8;
-  --sel-bg:#eaf3fb; --sel-bd:#82bce8; --sel-tx:#1653a0;
-  --req-bg:#eaf5ee; --req-bd:#74c79a; --req-tx:#1a6636;
-  --shadow:0 2px 12px rgba(0,0,0,0.08);
+  --ink:#18120a;--paper:#faf8f3;--white:#fff;
+  --b1:#e2d9cc;--b2:#cec3b3;--b3:#b8aa97;
+  --muted:#7e7165;--faint:#ede7dd;
+  --gold:#c8a24a;--gold-bg:#fdf6e8;
+  --sel-bg:#eaf3fb;--sel-bd:#82bce8;--sel-tx:#1653a0;
+  --req-bg:#eaf5ee;--req-bd:#74c79a;--req-tx:#1a6636;
 }
 body{font-family:'Noto Sans KR',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;}
 button{font-family:inherit;cursor:pointer;}
-a{color:inherit;}
 
-/* ── HEADER ──────────────────────────────────────────────────── */
-.hdr{background:var(--ink);color:#faf8f3;padding:22px 28px 18px;}
+/* ── PASSWORD ── */
+.pw{position:fixed;inset:0;z-index:9999;background:var(--ink);display:flex;align-items:center;justify-content:center;}
+.pw-box{text-align:center;padding:40px 36px;background:rgba(255,255,255,.04);border:1px solid rgba(200,162,74,.25);border-radius:12px;width:100%;max-width:340px;}
+.pw h2{font-family:'Noto Serif KR',serif;font-size:18px;font-weight:700;color:#faf8f3;margin-bottom:5px;}
+.pw-sub{font-size:11px;color:var(--gold);letter-spacing:.1em;margin-bottom:26px;}
+.pw input{width:100%;padding:11px 14px;font-family:inherit;font-size:14px;background:rgba(255,255,255,.07);border:1px solid rgba(200,162,74,.3);border-radius:6px;color:#faf8f3;outline:none;text-align:center;letter-spacing:.06em;transition:border-color .15s;margin-bottom:10px;}
+.pw input:focus{border-color:var(--gold);}
+.pw input::placeholder{color:rgba(255,255,255,.25);letter-spacing:0;}
+.pw-btn{width:100%;padding:11px;font-family:inherit;font-size:13px;font-weight:700;background:var(--gold);border:none;border-radius:6px;color:var(--ink);cursor:pointer;transition:opacity .12s;}
+.pw-btn:hover{opacity:.85;}
+.pw-err{font-size:11px;color:#e07070;margin-top:8px;min-height:16px;}
+
+/* ── HEADER ── */
+.hdr{background:var(--ink);color:#faf8f3;padding:20px 26px 16px;}
 .hdr-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;}
-.hdr h1{font-family:'Noto Serif KR',serif;font-size:19px;font-weight:700;line-height:1.35;}
-.hdr-sub{font-size:11px;color:var(--gold);margin-top:3px;letter-spacing:.12em;}
-.hdr-badge{background:var(--gold);color:var(--ink);padding:5px 13px;font-size:11px;font-weight:700;border-radius:2px;white-space:nowrap;align-self:flex-start;}
-.hdr-route{display:flex;align-items:center;gap:7px;margin-top:13px;flex-wrap:wrap;}
-.hdr-node{background:rgba(255,255,255,.07);border:1px solid rgba(200,162,74,.35);padding:4px 11px;font-size:11px;border-radius:2px;}
+.hdr h1{font-family:'Noto Serif KR',serif;font-size:18px;font-weight:700;line-height:1.35;}
+.hdr-sub{font-size:11px;color:var(--gold);margin-top:3px;letter-spacing:.1em;}
+.hdr-badge{background:var(--gold);color:var(--ink);padding:4px 12px;font-size:11px;font-weight:700;border-radius:2px;white-space:nowrap;align-self:flex-start;}
+.hdr-route{display:flex;align-items:center;gap:7px;margin-top:12px;flex-wrap:wrap;}
+.hdr-node{background:rgba(255,255,255,.07);border:1px solid rgba(200,162,74,.3);padding:3px 10px;font-size:11px;border-radius:2px;}
 .hdr-arr{color:var(--gold);font-size:12px;}
 
-/* ── TOOLBAR ─────────────────────────────────────────────────── */
-.toolbar{
-  background:var(--white);border-bottom:1px solid var(--b1);
-  padding:9px 28px;display:flex;align-items:center;gap:10px;
-  position:sticky;top:0;z-index:100;
-  box-shadow:0 1px 5px rgba(0,0,0,.05);flex-wrap:wrap;
-}
-.tb-label{font-size:11px;color:var(--muted);font-weight:500;white-space:nowrap;}
-.tb-seg{display:flex;border:1px solid var(--b2);border-radius:4px;overflow:hidden;}
-.tb-seg button{
-  padding:5px 14px;font-size:12px;font-weight:700;
-  background:transparent;border:none;color:var(--muted);
-  transition:background .1s,color .1s;white-space:nowrap;
-}
-.tb-seg button.on{background:var(--ink);color:var(--white);}
-.tb-sep{width:1px;background:var(--b1);margin:0 4px;}
-
-/* trip selector */
-.trip-sel{
-  padding:5px 10px;font-family:inherit;font-size:12px;font-weight:500;
-  border:1px solid var(--b2);border-radius:4px;background:var(--white);
-  color:var(--ink);cursor:pointer;
-}
-
-/* reset + print */
-.tb-right{margin-left:auto;display:flex;gap:8px;align-items:center;}
-.tb-btn{
-  padding:6px 14px;font-size:12px;font-weight:700;
-  border-radius:4px;border:1px solid var(--b2);
-  background:transparent;color:var(--muted);transition:background .12s;
-}
+/* ── CONFIG BAR ── */
+.cfg-bar{background:var(--white);border-bottom:2px solid var(--b1);padding:10px 26px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.cfg-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.06em;white-space:nowrap;}
+.cfg-sep{width:1px;height:20px;background:var(--b1);margin:0 4px;}
+.seg{display:flex;border:1px solid var(--b2);border-radius:4px;overflow:hidden;}
+.seg button{padding:5px 13px;font-size:12px;font-weight:700;background:transparent;border:none;color:var(--muted);transition:background .1s,color .1s;white-space:nowrap;}
+.seg button.on{background:var(--ink);color:var(--white);}
+.trip-sel{padding:5px 10px;font-family:inherit;font-size:12px;font-weight:700;border:1px solid var(--b2);border-radius:4px;background:var(--white);color:var(--ink);cursor:pointer;}
+.cfg-right{margin-left:auto;display:flex;gap:8px;}
+.tb-btn{padding:5px 13px;font-size:12px;font-weight:700;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--muted);transition:background .12s;}
 .tb-btn:hover{background:var(--faint);}
 .tb-btn.primary{background:var(--gold);border-color:var(--gold);color:var(--ink);}
 .tb-btn.primary:hover{opacity:.85;}
 
-/* ── LAYOUT ──────────────────────────────────────────────────── */
-.layout{display:grid;grid-template-columns:1fr 310px;align-items:start;}
-.col-days{padding:18px 22px;display:flex;flex-direction:column;gap:18px;}
-.col-right{padding:18px 20px 18px 6px;position:sticky;top:50px;display:flex;flex-direction:column;gap:10px;}
+/* ── FLIGHT INFO BANNER ── */
+.flight-banner{background:var(--gold-bg);border-bottom:1px solid #e8d5a0;padding:8px 26px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:12px;color:#6b4e0a;}
+.fl-item{display:flex;align-items:center;gap:5px;}
+.fl-item b{font-weight:700;}
+.fl-arr{color:#c8a24a;font-weight:700;}
 
-/* ── DAY BLOCK ───────────────────────────────────────────────── */
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:1fr 310px;align-items:start;}
+.col-days{padding:16px 20px;display:flex;flex-direction:column;gap:16px;}
+.col-right{padding:16px 18px 16px 4px;position:sticky;top:0;display:flex;flex-direction:column;gap:10px;max-height:100vh;overflow-y:auto;}
+
+/* ── DAY BLOCK ── */
 .day-block{background:var(--white);border:1px solid var(--b1);border-radius:8px;overflow:hidden;}
 .day-hd{display:flex;align-items:center;gap:9px;padding:9px 13px;border-bottom:1px solid var(--b1);}
 .day-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
@@ -94,19 +88,13 @@ a{color:inherit;}
 .sec-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:7px 13px 3px;}
 .spots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:7px;padding:3px 11px 11px;}
 
-/* ── SPOT CARD ───────────────────────────────────────────────── */
-.spot{
-  border:1px solid var(--b1);border-radius:6px;padding:9px 11px;
-  cursor:pointer;transition:border-color .12s,background .1s;position:relative;
-}
+/* ── SPOT CARD ── */
+.spot{border:1px solid var(--b1);border-radius:6px;padding:9px 11px;cursor:pointer;transition:border-color .12s,background .1s;position:relative;}
 .spot:hover{border-color:var(--b2);}
 .spot.sel{border-color:var(--sel-bd);background:var(--sel-bg);}
 .spot.req{border-color:var(--req-bd);background:var(--req-bg);cursor:default;}
-.spot-chk{
-  position:absolute;top:8px;right:8px;width:15px;height:15px;border-radius:50%;
-  border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;
-  font-size:8px;background:var(--white);flex-shrink:0;
-}
+.spot.info-only{border-color:var(--b2);background:var(--faint);cursor:default;opacity:.8;}
+.spot-chk{position:absolute;top:8px;right:8px;width:15px;height:15px;border-radius:50%;border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:8px;background:var(--white);}
 .spot.sel .spot-chk{background:var(--sel-bg);border-color:var(--sel-bd);color:var(--sel-tx);}
 .spot.req .spot-chk{background:var(--req-bg);border-color:var(--req-bd);color:var(--req-tx);}
 .spot-name{font-size:12px;font-weight:700;line-height:1.3;margin-bottom:3px;padding-right:18px;}
@@ -115,10 +103,11 @@ a{color:inherit;}
 .spot-tags{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px;}
 .stag{font-size:9px;padding:1px 5px;border-radius:3px;background:var(--faint);color:var(--muted);}
 .stag.req{background:var(--req-bg);color:var(--req-tx);}
+.stag.info{background:#f0ecff;color:#5a3faa;}
 .spot-desc{font-size:10px;color:var(--muted);line-height:1.45;margin-bottom:4px;}
 .spot-meta{font-size:9px;color:#a09080;display:flex;gap:5px;flex-wrap:wrap;}
 
-/* ── RIGHT PANEL ─────────────────────────────────────────────── */
+/* ── RIGHT PANEL ── */
 .panel{background:var(--white);border:1px solid var(--b1);border-radius:8px;overflow:hidden;}
 .panel-hd{padding:9px 13px;border-bottom:1px solid var(--b1);font-size:12px;font-weight:700;}
 .panel-bd{padding:9px 13px;}
@@ -130,20 +119,18 @@ a{color:inherit;}
 .itin-n{font-size:11px;font-weight:700;line-height:1.3;}
 .itin-sub{font-size:9px;color:var(--muted);margin-top:1px;}
 .itin-empty{font-size:11px;color:var(--muted);padding:6px 0;}
-
-/* cost */
 .cost-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--b1);color:var(--muted);}
 .cost-row:last-child{border-bottom:none;}
 .cost-total{display:flex;justify-content:space-between;font-size:12px;font-weight:700;padding:6px 0 2px;border-top:1.5px solid var(--b2);margin-top:3px;}
 
-/* ── PRINT OVERLAY ───────────────────────────────────────────── */
+/* ── PRINT OVERLAY ── */
 .overlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.6);overflow-y:auto;padding:28px 16px;}
 .overlay.open{display:block;}
 .psheet{background:var(--white);max-width:680px;margin:0 auto;border-radius:10px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.28);}
 .psh{background:var(--ink);color:#faf8f3;padding:20px 26px;}
 .psh h2{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700;}
 .psh-sub{font-size:11px;color:var(--gold);margin-top:3px;letter-spacing:.1em;}
-.psh-meta{display:flex;gap:18px;margin-top:11px;flex-wrap:wrap;}
+.psh-meta{display:flex;gap:16px;margin-top:11px;flex-wrap:wrap;}
 .psh-meta span{font-size:11px;}
 .psh-meta b{color:var(--gold);margin-right:3px;}
 .pbody{padding:22px 26px;}
@@ -158,30 +145,25 @@ a{color:inherit;}
 .pspot-name{font-size:12px;font-weight:700;margin-bottom:2px;}
 .pspot-req{font-size:9px;color:var(--req-tx);font-weight:400;margin-left:4px;}
 .pspot-info{font-size:10px;color:var(--muted);line-height:1.5;}
-.pspot-tags{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;}
-.ptag{font-size:9px;padding:1px 5px;border-radius:3px;background:var(--faint);color:var(--muted);}
 .pspot-cost{font-size:10px;font-weight:700;color:var(--req-tx);margin-top:2px;}
 .pnight{font-size:10px;color:var(--muted);padding:5px 10px;background:var(--faint);border-radius:3px;margin-top:5px;}
+.pflight{font-size:10px;color:#6b4e0a;padding:6px 10px;background:var(--gold-bg);border:1px solid #e8d5a0;border-radius:4px;margin-bottom:8px;}
 .pcost{margin-top:18px;border:1px solid var(--b1);border-radius:7px;overflow:hidden;}
 .pcost-row{display:flex;justify-content:space-between;padding:7px 14px;font-size:11px;border-bottom:1px solid var(--b1);color:var(--muted);}
 .pcost-row:last-child{border-bottom:none;}
 .pcost-total{display:flex;justify-content:space-between;padding:10px 14px;font-size:13px;font-weight:700;background:var(--ink);color:#faf8f3;}
-.pactions{padding:13px 26px;border-top:1px solid var(--b1);display:flex;gap:8px;align-items:center;background:var(--paper);}
+.pactions{padding:12px 26px;border-top:1px solid var(--b1);display:flex;gap:8px;align-items:center;background:var(--paper);}
 .pnote{font-size:10px;color:var(--muted);flex:1;line-height:1.6;}
-.pbtn{padding:7px 16px;font-family:inherit;font-size:12px;font-weight:700;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--muted);cursor:pointer;}
+.pbtn{padding:7px 14px;font-family:inherit;font-size:12px;font-weight:700;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--muted);cursor:pointer;}
 .pbtn:hover{background:var(--faint);}
 .pbtn.primary{background:var(--ink);border-color:var(--ink);color:var(--white);}
-.pbtn.primary:hover{opacity:.85;}
 
-/* ── RESPONSIVE ──────────────────────────────────────────────── */
 @media(max-width:720px){
   .layout{grid-template-columns:1fr;}
-  .col-right{position:static;padding:0 16px 20px;}
+  .col-right{position:static;max-height:none;padding:0 14px 20px;}
   .spots-grid{grid-template-columns:1fr 1fr;}
 }
 @media(max-width:440px){.spots-grid{grid-template-columns:1fr;}}
-
-/* ── PRINT MEDIA ─────────────────────────────────────────────── */
 @media print{
   body>*:not(.overlay){display:none!important;}
   .overlay{display:block!important;position:static!important;background:none!important;padding:0!important;overflow:visible!important;}
@@ -190,578 +172,24 @@ a{color:inherit;}
   @page{margin:14mm;}
 }
 </style>
+
 </head>
 <body>
 
-<!-- ============================================================
-     ██████╗  █████╗ ████████╗ █████╗
-     ██╔══██╗██╔══██╗╚══██╔══╝██╔══██╗
-     ██║  ██║███████║   ██║   ███████║
-     ██║  ██║██╔══██║   ██║   ██╔══██║
-     ██████╔╝██║  ██║   ██║   ██║  ██║
-     ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝
+<!-- ── PASSWORD ────────────────────────────────────────────── -->
 
-     모든 여행 데이터는 아래 TRIPS 배열에서 관리합니다.
-     새 여행을 추가하려면 TRIPS 배열에 새 객체를 추가하세요.
-     ============================================================ -->
-<script>
-/* ═══════════════════════════════════════════════════════════════
-   TRIPS  —  여행 데이터 정의
-   각 trip 객체 구조:
-   {
-     id:        string          고유 ID
-     title:     string          상단 제목
-     subtitle:  string          부제목
-     dateRange: string          날짜 표시
-     route:     string[]        경로 노드 배열
-     nights:    string          숙박 요약
+<div class="pw" id="pwScreen">
+  <div class="pw-box">
+    <h2>가족 여행 플래너</h2>
+    <div class="pw-sub">Family Travel Planner</div>
+    <input type="password" id="pwInput" placeholder="비밀번호를 입력하세요"
+      onkeydown="if(event.key==='Enter')checkPw()">
+    <button class="pw-btn" onclick="checkPw()">입장</button>
+    <div class="pw-err" id="pwErr"></div>
+  </div>
+</div>
 
-     partyOptions: [            인원 옵션 (2개 이상 가능)
-       { label, value }
-     ]
-
-     fixedCosts: [              고정 비용 (인원별 금액)
-       { label, costs: { [value]: number } }
-     ]
-
-     days: [                    일별 일정
-       {
-         label:  string         "Day 1"
-         title:  string         "히로시마 시내"
-         date:   string         "7/16 (수)"
-         color:  string         hex
-         night:  string|null    숙박지
-
-         spots: [               장소 목록
-           {
-             id:       string   고유 ID
-             name:     string
-             required: bool     필수 여부
-             tags:     string[]
-             desc:     string
-             duration: string   "1.5시간"
-             costs:    { [partyValue]: number }
-             itin: {
-               time: string     "09:30"
-               note: string     이동 방법/팁
-             }
-           }
-         ]
-       }
-     ]
-   }
-   ═══════════════════════════════════════════════════════════════ */
-
-const TRIPS = [
-
-  /* ─────────────────────────────────────────────────────────────
-     여행 1 : 히로시마 + 미야지마 + 시모노세키  3박4일
-     ───────────────────────────────────────────────────────────── */
-  {
-    id: 'hiroshima-shimonoseki-2025',
-    title: '히로시마 · 미야지마 · 시모노세키',
-    subtitle: '성 & 역사 집중 코스 · 3박4일',
-    dateRange: '2025. 7. 16 — 7. 19',
-    route: ['히로시마 2박', '시모노세키 1박', '귀국'],
-    nights: '히로시마 2박 → 시모노세키 1박',
-
-    partyOptions: [
-      { label: '👫 2인', value: '2' },
-      { label: '👨‍👩‍👧‍👦 4인', value: '4' },
-    ],
-
-    /* 고정 비용: 입장료 외 교통·숙박·식비 등 */
-    fixedCosts: [
-      { label: '신칸센 (히로시마↔시모노세키)',  costs: { '2': 20000, '4': 40000 } },
-      { label: '페리 (미야지마 왕복)',           costs: { '2':  2000, '4':  4000 } },
-      { label: '식비 추정 (3박4일)',             costs: { '2': 32000, '4': 64000 } },
-      { label: '숙박 추정 (3박)',               costs: { '2': 60000, '4':120000 } },
-    ],
-
-    days: [
-      {
-        label: 'Day 1', title: '히로시마 시내',
-        date: '7/16 (수)', color: '#378ADD', night: '히로시마 숙박',
-        spots: [
-          {
-            id: 'hcastle', name: '히로시마성', required: true,
-            tags: ['성', '역사'],
-            desc: '1589년 축성. 원폭 소실 후 재건. 내부 갑옷·검 체험 가능.',
-            duration: '1.5시간', costs: { '2': 740, '4': 1480 },
-            itin: { time: '09:30', note: '히로시마역 → 버스 15분' }
-          },
-          {
-            id: 'shukkei', name: '슈케이엔 정원', required: true,
-            tags: ['역사', '정원'],
-            desc: '1620년 조성 에도시대 지천회유식 정원. 히로시마성과 도보 10분.',
-            duration: '1시간', costs: { '2': 700, '4': 1400 },
-            itin: { time: '11:15', note: '히로시마성에서 도보 10분' }
-          },
-          {
-            id: 'peacedome', name: '원폭 돔', required: true,
-            tags: ['역사', '유네스코'],
-            desc: '1945년 8월 6일 원폭 피폭 유적. 유네스코 세계문화유산.',
-            duration: '30분', costs: { '2': 0, '4': 0 },
-            itin: { time: '13:30', note: '평화공원 도보 이동' }
-          },
-          {
-            id: 'peacemuseum', name: '평화기념 박물관', required: true,
-            tags: ['역사', '박물관'],
-            desc: '세계에서 가장 강렬한 역사 박물관. 성수기 온라인 사전 예약 권장.',
-            duration: '1.5~2시간', costs: { '2': 400, '4': 800 },
-            itin: { time: '14:15', note: '원폭 돔 바로 옆. 온라인 예약 추천' }
-          },
-          {
-            id: 'orizuru', name: '오리즈루 타워', required: false,
-            tags: ['전망'],
-            desc: '원폭 돔 바로 옆 전망 타워. 종이학 체험 포함.',
-            duration: '1시간', costs: { '2': 3000, '4': 6000 },
-            itin: { time: '16:30', note: '평화공원 관람 후 연계' }
-          },
-          {
-            id: 'peacehall', name: '국립 원폭 희생자 추도평화관', required: false,
-            tags: ['역사'],
-            desc: '무료 추도 시설. 박물관 인근. 조용하고 격조 있는 공간.',
-            duration: '45분', costs: { '2': 0, '4': 0 },
-            itin: { time: '16:00', note: '박물관 관람 후 이동' }
-          },
-        ]
-      },
-
-      {
-        label: 'Day 2', title: '미야지마',
-        date: '7/17 (목)', color: '#1D9E75', night: '히로시마 숙박',
-        spots: [
-          {
-            id: 'itsukushima', name: '이쓰쿠시마 신사', required: true,
-            tags: ['신사', '유네스코'],
-            desc: '바다 위 도리이로 유명. 헤이안 시대 창건. 만조 때 물 위에 떠 보임.',
-            duration: '1시간', costs: { '2': 600, '4': 1200 },
-            itin: { time: '09:30', note: '히로시마역 → 전철 25분 → 페리 10분' }
-          },
-          {
-            id: 'otorii', name: '오토리이 (대도리이)', required: true,
-            tags: ['신사', '포토스팟'],
-            desc: '간조 때 직접 걸어가서 올려다볼 수 있음. 조수 시간 사전 확인 필수.',
-            duration: '30분', costs: { '2': 0, '4': 0 },
-            itin: { time: '10:45', note: '간조 시간 맞춰 이동 — tide-forecast.com 확인' }
-          },
-          {
-            id: 'daishoin', name: '다이쇼인 사원', required: false,
-            tags: ['사원', '역사'],
-            desc: '미야지마 산중 사원. 500 나한상 계단길이 압권. 무료.',
-            duration: '1시간', costs: { '2': 0, '4': 0 },
-            itin: { time: '12:00', note: '신사에서 도보 15분' }
-          },
-          {
-            id: 'misen', name: '미센 산 등산', required: false,
-            tags: ['자연'],
-            desc: '해발 535m. 케이블카 또는 도보 등반. 정상 전망 최고.',
-            duration: '2~3시간', costs: { '2': 3600, '4': 7200 },
-            itin: { time: '13:00', note: '왕복 케이블카 어른 1,800엔' }
-          },
-          {
-            id: 'miyajima_lunch', name: '미야지마 굴·모미지 만주', required: false,
-            tags: ['식도락'],
-            desc: '미야지마 명물 구이 굴과 단풍 모양 화과자. 참배길 즉석 구매.',
-            duration: '30분', costs: { '2': 2000, '4': 4000 },
-            itin: { time: '11:30', note: '참배길 상점가에서 점심' }
-          },
-        ]
-      },
-
-      {
-        label: 'Day 3', title: '시모노세키',
-        date: '7/18 (금)', color: '#BA7517', night: '시모노세키 숙박',
-        spots: [
-          {
-            id: 'dannoura', name: '단노우라 고전장', required: true,
-            tags: ['역사', '겐페이'],
-            desc: '1185년 겐페이 전쟁 최후 결전지. 간몬 해협 해안 산책로.',
-            duration: '1시간', costs: { '2': 0, '4': 0 },
-            itin: { time: '10:00', note: '시모노세키역 → 버스 15분' }
-          },
-          {
-            id: 'akama', name: '아카마 신궁', required: true,
-            tags: ['신사', '역사'],
-            desc: '단노우라에서 수몰된 안토쿠 천황을 모신 주홍빛 신사.',
-            duration: '45분', costs: { '2': 0, '4': 0 },
-            itin: { time: '11:15', note: '단노우라에서 도보 5분' }
-          },
-          {
-            id: 'karato', name: '가라토 수산시장', required: false,
-            tags: ['시장', '식도락'],
-            desc: '금요일 방문! 복어·성게 초밥 노점 운영. 시모노세키 최대 명물.',
-            duration: '1시간', costs: { '2': 4000, '4': 8000 },
-            itin: { time: '12:30', note: '금요일 노점 점심 강력 추천' }
-          },
-          {
-            id: 'chofu', name: '초후 모리 저택', required: false,
-            tags: ['사무라이', '역사'],
-            desc: '메이지 시대 번주 저택. 실제 사무라이 생활 공간 공개.',
-            duration: '1시간', costs: { '2': 1000, '4': 2000 },
-            itin: { time: '14:30', note: '가라토에서 버스 20분' }
-          },
-          {
-            id: 'chofu_g', name: '초후 정원', required: false,
-            tags: ['정원', '역사'],
-            desc: '에도시대 번주 조성 전통 정원. 모리 저택과 도보 10분.',
-            duration: '45분', costs: { '2': 500, '4': 1000 },
-            itin: { time: '15:45', note: '모리 저택에서 도보 10분' }
-          },
-        ]
-      },
-
-      {
-        label: 'Day 4', title: '귀국',
-        date: '7/19 (토)', color: '#888780', night: null,
-        spots: [
-          {
-            id: 'karato_am', name: '가라토 항구 아침 산책', required: false,
-            tags: ['항구'],
-            desc: '아침 일찍 간몬 해협 뷰. 구 아키타 상회 건물 외관 감상 가능.',
-            duration: '30분', costs: { '2': 0, '4': 0 },
-            itin: { time: '08:30', note: '출발 전 숙소 주변 산책' }
-          },
-        ]
-      },
-    ]
-  },
-
-  /* ─────────────────────────────────────────────────────────────
-     여행 2 : 여기에 다음 여행을 추가하세요
-     예시 구조를 복사해서 id, title, days 등을 수정하면 됩니다.
-     ───────────────────────────────────────────────────────────── */
-  // {
-  //   id: 'kyoto-osaka-2026',
-  //   title: '교토 · 오사카 여행',
-  //   ...
-  // },
-
-];
-
-/* ═══════════════════════════════════════════════════════════════
-   STATE
-   ═══════════════════════════════════════════════════════════════ */
-const state = {
-  tripIdx: 0,
-  party: null,    // 현재 인원 value (string)
-  selected: new Set(),
-};
-
-function trip()   { return TRIPS[state.tripIdx]; }
-function party()  { return state.party || trip().partyOptions[0].value; }
-
-function initTrip(idx) {
-  state.tripIdx = idx;
-  const t = trip();
-  state.party = t.partyOptions[0].value;
-  state.selected = new Set();
-  // 필수 장소 선택 상태로 초기화
-  t.days.forEach(d => d.spots.forEach(s => { if (s.required) state.selected.add(s.id); }));
-  // 선택 장소 기본값 (가라토 시장 등 추천 선택)
-  const defaults = ['karato','daishoin','miyajima_lunch'];
-  defaults.forEach(id => state.selected.add(id));
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   HELPERS
-   ═══════════════════════════════════════════════════════════════ */
-function isActive(spot) {
-  return spot.required || state.selected.has(spot.id);
-}
-function activeSpots(day) {
-  return day.spots.filter(isActive);
-}
-function spotCost(spot) {
-  return (spot.costs[party()] ?? 0);
-}
-function fmt(n) { return n === 0 ? '무료' : `¥${n.toLocaleString()}`; }
-
-/* ═══════════════════════════════════════════════════════════════
-   RENDER HELPERS
-   ═══════════════════════════════════════════════════════════════ */
-function el(tag, cls, html) {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (html !== undefined) e.innerHTML = html;
-  return e;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   RENDER: HEADER
-   ═══════════════════════════════════════════════════════════════ */
-function renderHeader() {
-  const t = trip();
-  document.getElementById('pageTitle').textContent = t.title + ' 여행 플래너';
-  document.getElementById('hdrTitle').textContent  = t.title;
-  document.getElementById('hdrSub').textContent    = t.subtitle;
-  document.getElementById('hdrBadge').textContent  = t.dateRange;
-
-  const route = document.getElementById('hdrRoute');
-  route.innerHTML = '';
-  t.route.forEach((node, i) => {
-    route.appendChild(el('span', 'hdr-node', node));
-    if (i < t.route.length - 1) route.appendChild(el('span', 'hdr-arr', '→'));
-  });
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   RENDER: TOOLBAR
-   ═══════════════════════════════════════════════════════════════ */
-function renderToolbar() {
-  const t = trip();
-
-  /* trip selector */
-  const sel = document.getElementById('tripSel');
-  sel.innerHTML = '';
-  TRIPS.forEach((tr, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = tr.title;
-    if (i === state.tripIdx) opt.selected = true;
-    sel.appendChild(opt);
-  });
-  sel.style.display = TRIPS.length > 1 ? '' : 'none';
-
-  /* party segment */
-  const seg = document.getElementById('partySeg');
-  seg.innerHTML = '';
-  t.partyOptions.forEach(p => {
-    const btn = el('button', party() === p.value ? 'on' : '', p.label);
-    btn.onclick = () => { state.party = p.value; renderAll(); };
-    seg.appendChild(btn);
-  });
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   RENDER: DAYS
-   ═══════════════════════════════════════════════════════════════ */
-function renderDays() {
-  const col = document.getElementById('colDays');
-  col.innerHTML = '';
-  trip().days.forEach(day => {
-    const cnt = activeSpots(day).length;
-    const block = el('div', 'day-block');
-    block.innerHTML = `
-      <div class="day-hd">
-        <div class="day-dot" style="background:${day.color}"></div>
-        <div class="day-hd-info">
-          <div class="day-hd-title">${day.label}&ensp;·&ensp;${day.title}</div>
-          <div class="day-hd-sub">${day.date}${day.night ? '&ensp;→&ensp;' + day.night : ''}</div>
-        </div>
-        <div class="day-hd-cnt">${cnt}곳 선택</div>
-      </div>`;
-
-    const req = day.spots.filter(s => s.required);
-    const opt = day.spots.filter(s => !s.required);
-
-    if (req.length) {
-      block.appendChild(el('div', 'sec-lbl', '필수'));
-      const grid = el('div', 'spots-grid');
-      req.forEach(s => grid.appendChild(makeSpotCard(s, day)));
-      block.appendChild(grid);
-    }
-    if (opt.length) {
-      block.appendChild(el('div', 'sec-lbl', '선택'));
-      const grid = el('div', 'spots-grid');
-      opt.forEach(s => grid.appendChild(makeSpotCard(s, day)));
-      block.appendChild(grid);
-    }
-    col.appendChild(block);
-  });
-}
-
-function makeSpotCard(spot, day) {
-  const on = isActive(spot);
-  const card = el('div', `spot${on ? (spot.required ? ' req' : ' sel') : ''}`);
-
-  const cost = spotCost(spot);
-  const tags = spot.tags.map(t => `<span class="stag${spot.required ? ' req' : ''}">${t}</span>`).join('');
-
-  card.innerHTML = `
-    <div class="spot-chk">${on ? '✓' : ''}</div>
-    <div class="spot-name">${spot.name}</div>
-    <div class="spot-tags">${tags}</div>
-    <div class="spot-desc">${spot.desc}</div>
-    <div class="spot-meta"><span>${spot.duration}</span><span>${fmt(cost)} / ${party()}인</span></div>`;
-
-  if (!spot.required) {
-    card.onclick = () => {
-      if (state.selected.has(spot.id)) state.selected.delete(spot.id);
-      else state.selected.add(spot.id);
-      renderAll();
-    };
-  }
-  return card;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   RENDER: ITINERARY PANEL
-   ═══════════════════════════════════════════════════════════════ */
-function renderItin() {
-  const body = document.getElementById('itinBody');
-  body.innerHTML = '';
-  let count = 0;
-
-  trip().days.forEach(day => {
-    const spots = activeSpots(day);
-    if (!spots.length) return;
-    count += spots.length;
-
-    body.appendChild(el('div', 'itin-day-lbl',
-      `<span class="itin-dot" style="background:${day.color}"></span>${day.label} · ${day.title}`));
-
-    spots.forEach(s => {
-      const cost = spotCost(s);
-      const row  = el('div', 'itin-row');
-      row.innerHTML = `
-        <div class="itin-t">${s.itin.time}</div>
-        <div>
-          <div class="itin-n">${s.name}</div>
-          <div class="itin-sub">${s.itin.note}&ensp;·&ensp;${fmt(cost)}</div>
-        </div>`;
-      body.appendChild(row);
-    });
-  });
-
-  if (!count) body.innerHTML = '<div class="itin-empty">장소를 선택하면 일정이 나타납니다</div>';
-  document.getElementById('itinHead').textContent = `선택 일정 (${count}곳)`;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   RENDER: COST PANEL
-   ═══════════════════════════════════════════════════════════════ */
-function renderCost() {
-  const body = document.getElementById('costBody');
-  body.innerHTML = '';
-  const t = trip();
-
-  let spotTotal = 0;
-  t.days.forEach(d => activeSpots(d).forEach(s => { spotTotal += spotCost(s); }));
-
-  let fixedTotal = 0;
-  const rows = [{ label: '입장료 합계', val: spotTotal }];
-  t.fixedCosts.forEach(fc => {
-    const val = fc.costs[party()] ?? 0;
-    fixedTotal += val;
-    rows.push({ label: fc.label, val });
-  });
-
-  const total = spotTotal + fixedTotal;
-  rows.forEach(r => {
-    body.appendChild(el('div', 'cost-row',
-      `<span>${r.label}</span><span>¥${r.val.toLocaleString()}</span>`));
-  });
-  body.appendChild(el('div', 'cost-total',
-    `<span>합계 (${party()}인)</span><span>¥${total.toLocaleString()}</span>`));
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   RENDER: ALL
-   ═══════════════════════════════════════════════════════════════ */
-function renderAll() {
-  renderHeader();
-  renderToolbar();
-  renderDays();
-  renderItin();
-  renderCost();
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   PRINT
-   ═══════════════════════════════════════════════════════════════ */
-function openPrint() {
-  buildPrint();
-  document.getElementById('overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closePrint() {
-  document.getElementById('overlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-function buildPrint() {
-  const t   = trip();
-  let spotTotal = 0;
-  t.days.forEach(d => activeSpots(d).forEach(s => { spotTotal += spotCost(s); }));
-  const totalSpots = t.days.flatMap(d => activeSpots(d)).length;
-
-  document.getElementById('pTitle').textContent    = t.title + ' 여행 일정표';
-  document.getElementById('pSub').textContent      = t.subtitle;
-  document.getElementById('pMeta1').innerHTML      = `<b>📅</b>${t.dateRange}`;
-  document.getElementById('pMeta2').innerHTML      = `<b>👥</b>${party()}인 기준`;
-  document.getElementById('pMeta3').innerHTML      = `<b>📍</b>총 ${totalSpots}개 장소`;
-
-  const body = document.getElementById('pbody');
-  body.innerHTML = '';
-
-  t.days.forEach(day => {
-    const spots = activeSpots(day);
-    const dayDiv = el('div', 'pday');
-    dayDiv.innerHTML = `
-      <div class="pday-hd" style="border-color:${day.color}">
-        <div class="pday-dot" style="background:${day.color}"></div>
-        <div class="pday-label" style="color:${day.color}">${day.label}&ensp;·&ensp;${day.title}</div>
-        <div class="pday-date">${day.date}</div>
-      </div>`;
-
-    if (!spots.length) {
-      dayDiv.appendChild(el('div', '', '<span style="font-size:11px;color:#7e7165">선택된 장소 없음</span>'));
-    }
-
-    spots.forEach(s => {
-      const cost = spotCost(s);
-      const sd = el('div', 'pspot');
-      sd.innerHTML = `
-        <div class="pspot-time">${s.itin.time}</div>
-        <div class="pspot-body">
-          <div class="pspot-name">${s.name}${s.required ? '<span class="pspot-req">(필수)</span>' : ''}</div>
-          <div class="pspot-info">${s.itin.note}&ensp;·&ensp;${s.duration}</div>
-          <div class="pspot-tags">${s.tags.map(t => `<span class="ptag">${t}</span>`).join('')}</div>
-          <div class="pspot-cost">${cost === 0 ? '무료 입장' : '¥' + cost.toLocaleString() + ' / ' + party() + '인'}</div>
-        </div>`;
-      dayDiv.appendChild(sd);
-    });
-
-    if (day.night) dayDiv.appendChild(el('div', 'pnight', '🏨&ensp;' + day.night));
-    body.appendChild(dayDiv);
-  });
-
-  /* 비용 요약 */
-  const ct = el('div', 'pcost');
-  let html = `<div class="pcost-row"><span>입장료 합계</span><span>¥${spotTotal.toLocaleString()}</span></div>`;
-  let fixedTotal = 0;
-  t.fixedCosts.forEach(fc => {
-    const val = fc.costs[party()] ?? 0;
-    fixedTotal += val;
-    html += `<div class="pcost-row"><span>${fc.label}</span><span>¥${val.toLocaleString()}</span></div>`;
-  });
-  const total = spotTotal + fixedTotal;
-  html += `<div class="pcost-total"><span>총 예상 비용 (${party()}인)</span><span>¥${total.toLocaleString()}</span></div>`;
-  ct.innerHTML = html;
-  body.appendChild(ct);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   ACTIONS
-   ═══════════════════════════════════════════════════════════════ */
-function resetSelections() {
-  if (!confirm('선택을 초기화하고 기본값으로 되돌릴까요?')) return;
-  initTrip(state.tripIdx);
-  renderAll();
-}
-
-function switchTrip(idx) {
-  initTrip(parseInt(idx));
-  renderAll();
-}
-
-/* ── BOOT ── */
-initTrip(0);
-</script>
-
-<!-- ── MARKUP ───────────────────────────────────────────────── -->
+<!-- ── HEADER ──────────────────────────────────────────────── -->
 
 <div class="hdr">
   <div class="hdr-top">
@@ -774,20 +202,34 @@ initTrip(0);
   <div class="hdr-route" id="hdrRoute"></div>
 </div>
 
-<div class="toolbar">
-  <span class="tb-label">여행</span>
+<!-- ── CONFIG BAR ──────────────────────────────────────────── -->
+
+<div class="cfg-bar">
+  <span class="cfg-label">여행</span>
   <select class="trip-sel" id="tripSel" onchange="switchTrip(this.value)"></select>
-
-  <div class="tb-sep"></div>
-
-  <span class="tb-label">인원</span>
-  <div class="tb-seg" id="partySeg"></div>
-
-  <div class="tb-right">
+  <div class="cfg-sep"></div>
+  <span class="cfg-label">일정</span>
+  <div class="seg" id="durSeg"></div>
+  <div class="cfg-sep"></div>
+  <span class="cfg-label">인원</span>
+  <div class="seg" id="partySeg"></div>
+  <div class="cfg-sep"></div>
+  <span class="cfg-label">출발지</span>
+  <div class="seg" id="depSeg"></div>
+  <div class="cfg-sep"></div>
+  <span class="cfg-label">귀국편</span>
+  <div class="seg" id="airportSeg"></div>
+  <div class="cfg-right">
     <button class="tb-btn" onclick="resetSelections()">↺ 초기화</button>
     <button class="tb-btn primary" onclick="openPrint()">🖨️ 출력 / PDF</button>
   </div>
 </div>
+
+<!-- ── FLIGHT BANNER ───────────────────────────────────────── -->
+
+<div class="flight-banner" id="flightBanner"></div>
+
+<!-- ── MAIN LAYOUT ─────────────────────────────────────────── -->
 
 <div class="layout">
   <div class="col-days" id="colDays"></div>
@@ -803,27 +245,783 @@ initTrip(0);
   </div>
 </div>
 
-<!-- PRINT OVERLAY -->
+<!-- ── PRINT OVERLAY ───────────────────────────────────────── -->
+
 <div class="overlay" id="overlay" onclick="if(event.target===this)closePrint()">
   <div class="psheet">
     <div class="psh">
       <h2 id="pTitle"></h2>
       <div class="psh-sub" id="pSub"></div>
       <div class="psh-meta">
-        <span id="pMeta1"></span>
-        <span id="pMeta2"></span>
-        <span id="pMeta3"></span>
+        <span id="pM1"></span><span id="pM2"></span>
+        <span id="pM3"></span><span id="pM4"></span>
       </div>
     </div>
     <div class="pbody" id="pbody"></div>
     <div class="pactions">
-      <div class="pnote">인쇄 창에서 <b>대상 → PDF로 저장</b>을 선택하면 PDF 파일로 저장됩니다.</div>
+      <div class="pnote">인쇄창에서 <b>대상 → PDF로 저장</b>을 선택하면 PDF로 저장됩니다.</div>
       <button class="pbtn" onclick="closePrint()">닫기</button>
-      <button class="pbtn primary" onclick="window.print()">🖨️ 인쇄 / PDF 저장</button>
+      <button class="pbtn primary" onclick="window.print()">🖨️ 인쇄 / PDF</button>
     </div>
   </div>
 </div>
 
-<script>renderAll();</script>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   PASSWORD
+═══════════════════════════════════════════════════════════ */
+function checkPw(){
+  if(document.getElementById('pwInput').value==='Trip'){
+    document.getElementById('pwScreen').style.display='none';
+    sessionStorage.setItem('trip_auth','1');
+  } else {
+    document.getElementById('pwErr').textContent='비밀번호가 올바르지 않습니다';
+    document.getElementById('pwInput').value='';
+    document.getElementById('pwInput').focus();
+    setTimeout(()=>document.getElementById('pwErr').textContent='',2000);
+  }
+}
+if(sessionStorage.getItem('trip_auth')==='1'){
+  document.addEventListener('DOMContentLoaded',()=>{
+    document.getElementById('pwScreen').style.display='none';
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TRIP DATA
+   ─────────────────────────────────────────────────────────
+   trip 객체 구조:
+   {
+     id, title, subtitle,
+     durationOptions: [{label, value}]   // 2박3일, 3박4일 등
+     durationDays: { '3d': [...days], '4d': [...days] }
+       각 days 배열은 day 객체들:
+       { label, title, date, color, night,
+         variants: { default, fukuoka, kitakyushu }  // 공항 variant
+         spots: [{ id, name, required, infoOnly,
+                   tags, desc, duration,
+                   costs: {partyValue: number},
+                   itin: {time, note} }] }
+     partyOptions: [{label, value}]
+     departureOptions: [{label, value, flightInfo}]
+     airportOptions: [{label, value, desc}]  // 귀국 공항
+     flightInfo: (dep, airport) => ({go, back})  // 항공편 정보 함수
+     fixedCosts: [{label, costs:{partyVal: number}}]
+   }
+═══════════════════════════════════════════════════════════ */
+
+const TRIPS = [
+
+/* ──────────────────────────────────────────────────────────
+   여행 1 : 히로시마 · 미야지마 · 시모노세키
+────────────────────────────────────────────────────────── */
+{
+  id: 'hiroshima',
+  title: '히로시마 · 미야지마 · 시모노세키',
+  subtitle: '성 & 역사 집중 코스',
+
+  durationOptions: [
+    { label: '2박3일', value: '3d' },
+    { label: '3박4일', value: '4d' },
+  ],
+
+  partyOptions: [
+    { label: '👫 2인', value: '2' },
+    { label: '👨‍👩‍👧‍👦 4인', value: '4' },
+    { label: '🏠 5인', value: '5' },
+  ],
+
+  departureOptions: [
+    { label: '✈ 인천', value: 'ICN', airport: '인천국제공항 → 히로시마공항' },
+    { label: '✈ 김포', value: 'GMP', airport: '김포공항 → 히로시마공항' },
+    { label: '✈ 김해', value: 'PUS', airport: '김해국제공항 → 후쿠오카공항' },
+  ],
+
+  airportOptions: [
+    { label: '후쿠오카', value: 'FUK', desc: '시모노세키→후쿠오카 이동 후 귀국 (약 1.5시간)' },
+    { label: '기타큐슈', value: 'KKJ', desc: '시모노세키에서 가장 가까운 공항 (약 40분)' },
+  ],
+
+  flightInfo(dep, airport) {
+    const go = {
+      ICN: '인천 → 히로시마 (약 1시간 50분)',
+      GMP: '김포 → 히로시마 (약 1시간 50분)',
+      PUS: '김해 → 후쿠오카 (약 1시간) → 신칸센 이동',
+    }[dep] || '';
+    const back = {
+      FUK: '시모노세키 → 후쿠오카공항 (버스/기차 약 1.5시간) → 귀국',
+      KKJ: '시모노세키 → 기타큐슈공항 (버스 약 40분) → 귀국',
+    }[airport] || '';
+    return { go, back };
+  },
+
+  fixedCosts: [
+    { label: '항공권 (왕복 추정)',     costs: {'2':400000,'4':800000,'5':1000000} },
+    { label: '신칸센 (히로시마↔시모)', costs: {'2':20000,'4':40000,'5':50000} },
+    { label: '페리 (미야지마 왕복)',   costs: {'2':2000,'4':4000,'5':5000} },
+    { label: '식비 추정',             costs: {'2':32000,'4':64000,'5':80000} },
+    { label: '숙박 추정',             costs: {'2':60000,'4':100000,'5':120000} },
+  ],
+
+  durationDays: {
+    '3d': [
+      {
+        label:'Day 1', title:'히로시마 시내',
+        date:'7/17 (목)', color:'#378ADD', night:'히로시마 숙박',
+        spots:[
+          { id:'hcastle', name:'히로시마성', required:true, tags:['성','역사'],
+            desc:'1589년 축성. 원폭 소실 후 재건. 내부 갑옷·검 체험 가능.',
+            duration:'1.5시간', costs:{'2':740,'4':1480,'5':1850},
+            itin:{time:'09:30',note:'히로시마역 → 버스 15분'} },
+          { id:'shukkei', name:'슈케이엔 정원', required:true, tags:['역사','정원'],
+            desc:'1620년 조성 에도시대 지천회유식 정원. 히로시마성과 도보 10분.',
+            duration:'1시간', costs:{'2':700,'4':1400,'5':1750},
+            itin:{time:'11:15',note:'히로시마성에서 도보 10분'} },
+          { id:'peacedome', name:'원폭 돔', required:true, tags:['역사','유네스코'],
+            desc:'1945년 8월 6일 원폭 피폭 유적. 유네스코 세계문화유산.',
+            duration:'30분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'13:30',note:'평화공원 도보 이동'} },
+          { id:'peacemuseum', name:'평화기념 박물관', required:true, tags:['역사','박물관'],
+            desc:'세계에서 가장 강렬한 역사 박물관. 성수기 온라인 사전 예약 권장.',
+            duration:'1.5~2시간', costs:{'2':400,'4':800,'5':1000},
+            itin:{time:'14:15',note:'원폭 돔 바로 옆'} },
+          { id:'orizuru', name:'오리즈루 타워', required:false, tags:['전망'],
+            desc:'원폭 돔 바로 옆 전망 타워. 종이학 체험 포함.',
+            duration:'1시간', costs:{'2':3000,'4':6000,'5':7500},
+            itin:{time:'16:30',note:'평화공원 관람 후 연계'} },
+        ]
+      },
+      {
+        label:'Day 2', title:'미야지마 + 시모노세키',
+        date:'7/18 (금)', color:'#1D9E75', night:'시모노세키 숙박',
+        spots:[
+          { id:'itsukushima', name:'이쓰쿠시마 신사', required:true, tags:['신사','유네스코'],
+            desc:'바다 위 도리이로 유명. 헤이안 시대 창건. 만조 때 물 위에 떠 보임.',
+            duration:'1시간', costs:{'2':600,'4':1200,'5':1500},
+            itin:{time:'08:30',note:'히로시마역 → 전철 25분 → 페리 10분'} },
+          { id:'otorii', name:'오토리이 (대도리이)', required:true, tags:['신사'],
+            desc:'간조 때 직접 걸어서 올려다볼 수 있음. 조수 시간 사전 확인 필수.',
+            duration:'30분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'09:45',note:'간조 시간 맞춰 이동'} },
+          { id:'miyajima_lunch', name:'미야지마 굴·모미지 만주', required:false, tags:['식도락'],
+            desc:'미야지마 명물 구이 굴과 단풍 모양 화과자. 참배길 즉석 구매.',
+            duration:'30분', costs:{'2':2000,'4':4000,'5':5000},
+            itin:{time:'10:30',note:'참배길 상점가에서 점심'} },
+          { id:'dannoura', name:'단노우라 고전장', required:true, tags:['역사','겐페이'],
+            desc:'1185년 겐페이 전쟁 최후 결전지. 간몬 해협 해안 산책로.',
+            duration:'1시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'14:30',note:'시모노세키역 → 버스 15분'} },
+          { id:'akama', name:'아카마 신궁', required:true, tags:['신사','역사'],
+            desc:'단노우라에서 수몰된 안토쿠 천황을 모신 주홍빛 신사.',
+            duration:'45분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'15:45',note:'단노우라에서 도보 5분'} },
+          { id:'karato', name:'가라토 수산시장', required:false, tags:['시장','식도락'],
+            desc:'금요일 방문! 복어·성게 초밥 노점 운영. 시모노세키 최대 명물.',
+            duration:'1시간', costs:{'2':4000,'4':8000,'5':10000},
+            itin:{time:'17:00',note:'저녁 식사 겸 방문'} },
+        ]
+      },
+      {
+        label:'Day 3', title:'귀국',
+        date:'7/19 (토)', color:'#888780', night:null,
+        spots:[
+          { id:'karato_am', name:'가라토 항구 아침 산책', required:false, tags:['항구'],
+            desc:'아침 간몬 해협 뷰. 구 아키타 상회 건물 외관 감상 가능.',
+            duration:'30분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'08:30',note:'출발 전 숙소 주변 산책'} },
+          { id:'airport_transfer_3d', name:'공항 이동', required:true, infoOnly:true, tags:['이동'],
+            desc:'귀국 공항 선택에 따라 이동 경로가 달라집니다.',
+            duration:'40분~1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'10:00',note:'선택한 귀국 공항으로 이동'} },
+        ]
+      },
+    ],
+
+    '4d': [
+      {
+        label:'Day 1', title:'히로시마 시내',
+        date:'7/16 (수)', color:'#378ADD', night:'히로시마 숙박',
+        spots:[
+          { id:'hcastle', name:'히로시마성', required:true, tags:['성','역사'],
+            desc:'1589년 축성. 원폭 소실 후 재건. 내부 갑옷·검 체험 가능.',
+            duration:'1.5시간', costs:{'2':740,'4':1480,'5':1850},
+            itin:{time:'09:30',note:'히로시마역 → 버스 15분'} },
+          { id:'shukkei', name:'슈케이엔 정원', required:true, tags:['역사','정원'],
+            desc:'1620년 조성 에도시대 지천회유식 정원. 히로시마성과 도보 10분.',
+            duration:'1시간', costs:{'2':700,'4':1400,'5':1750},
+            itin:{time:'11:15',note:'히로시마성에서 도보 10분'} },
+          { id:'peacedome', name:'원폭 돔', required:true, tags:['역사','유네스코'],
+            desc:'1945년 8월 6일 원폭 피폭 유적. 유네스코 세계문화유산.',
+            duration:'30분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'13:30',note:'평화공원 도보 이동'} },
+          { id:'peacemuseum', name:'평화기념 박물관', required:true, tags:['역사','박물관'],
+            desc:'세계에서 가장 강렬한 역사 박물관. 성수기 온라인 사전 예약 권장.',
+            duration:'1.5~2시간', costs:{'2':400,'4':800,'5':1000},
+            itin:{time:'14:15',note:'원폭 돔 바로 옆'} },
+          { id:'orizuru', name:'오리즈루 타워', required:false, tags:['전망'],
+            desc:'원폭 돔 바로 옆 전망 타워. 종이학 체험 포함.',
+            duration:'1시간', costs:{'2':3000,'4':6000,'5':7500},
+            itin:{time:'16:30',note:'평화공원 관람 후 연계'} },
+        ]
+      },
+      {
+        label:'Day 2', title:'미야지마',
+        date:'7/17 (목)', color:'#1D9E75', night:'히로시마 숙박',
+        spots:[
+          { id:'itsukushima', name:'이쓰쿠시마 신사', required:true, tags:['신사','유네스코'],
+            desc:'바다 위 도리이로 유명. 헤이안 시대 창건. 만조 때 물 위에 떠 보임.',
+            duration:'1시간', costs:{'2':600,'4':1200,'5':1500},
+            itin:{time:'09:30',note:'히로시마역 → 전철 25분 → 페리 10분'} },
+          { id:'otorii', name:'오토리이 (대도리이)', required:true, tags:['신사'],
+            desc:'간조 때 직접 걸어서 올려다볼 수 있음. 조수 시간 사전 확인 필수.',
+            duration:'30분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'10:45',note:'간조 시간 맞춰 이동'} },
+          { id:'daishoin', name:'다이쇼인 사원', required:false, tags:['사원','역사'],
+            desc:'미야지마 산중 사원. 500 나한상 계단길이 압권. 무료.',
+            duration:'1시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'12:00',note:'신사에서 도보 15분'} },
+          { id:'misen', name:'미센 산 등산', required:false, tags:['자연'],
+            desc:'해발 535m. 케이블카 또는 도보 등반. 정상 전망 최고.',
+            duration:'2~3시간', costs:{'2':3600,'4':7200,'5':9000},
+            itin:{time:'13:00',note:'왕복 케이블카 어른 1,800엔'} },
+          { id:'miyajima_lunch', name:'미야지마 굴·모미지 만주', required:false, tags:['식도락'],
+            desc:'미야지마 명물 구이 굴과 단풍 모양 화과자. 참배길 즉석 구매.',
+            duration:'30분', costs:{'2':2000,'4':4000,'5':5000},
+            itin:{time:'11:30',note:'참배길 상점가에서 점심'} },
+        ]
+      },
+      {
+        label:'Day 3', title:'시모노세키',
+        date:'7/18 (금)', color:'#BA7517', night:'시모노세키 숙박',
+        spots:[
+          { id:'dannoura', name:'단노우라 고전장', required:true, tags:['역사','겐페이'],
+            desc:'1185년 겐페이 전쟁 최후 결전지. 간몬 해협 해안 산책로.',
+            duration:'1시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'10:00',note:'시모노세키역 → 버스 15분'} },
+          { id:'akama', name:'아카마 신궁', required:true, tags:['신사','역사'],
+            desc:'단노우라에서 수몰된 안토쿠 천황을 모신 주홍빛 신사.',
+            duration:'45분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'11:15',note:'단노우라에서 도보 5분'} },
+          { id:'karato', name:'가라토 수산시장', required:false, tags:['시장','식도락'],
+            desc:'금요일 방문! 복어·성게 초밥 노점 운영. 시모노세키 최대 명물.',
+            duration:'1시간', costs:{'2':4000,'4':8000,'5':10000},
+            itin:{time:'12:30',note:'금요일 노점 점심 강력 추천'} },
+          { id:'chofu', name:'초후 모리 저택', required:false, tags:['사무라이','역사'],
+            desc:'메이지 시대 번주 저택. 실제 사무라이 생활 공간 공개.',
+            duration:'1시간', costs:{'2':1000,'4':2000,'5':2500},
+            itin:{time:'14:30',note:'가라토에서 버스 20분'} },
+          { id:'chofu_g', name:'초후 정원', required:false, tags:['정원','역사'],
+            desc:'에도시대 번주 조성 전통 정원. 모리 저택과 도보 10분.',
+            duration:'45분', costs:{'2':500,'4':1000,'5':1250},
+            itin:{time:'15:45',note:'모리 저택에서 도보 10분'} },
+        ]
+      },
+      {
+        label:'Day 4', title:'귀국',
+        date:'7/19 (토)', color:'#888780', night:null,
+        spots:[
+          { id:'karato_am', name:'가라토 항구 아침 산책', required:false, tags:['항구'],
+            desc:'아침 간몬 해협 뷰. 구 아키타 상회 건물 외관 감상 가능.',
+            duration:'30분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'08:30',note:'출발 전 숙소 주변 산책'} },
+          { id:'airport_fuk', name:'후쿠오카공항 이동', required:false, infoOnly:true, tags:['이동','후쿠오카'],
+            desc:'시모노세키역 → 신칸센 하카타 → 후쿠오카공항. 약 1시간 30분.',
+            duration:'1.5시간', costs:{'2':3000,'4':6000,'5':7500},
+            itin:{time:'10:00',note:'후쿠오카공항 귀국 선택 시'} },
+          { id:'airport_kkj', name:'기타큐슈공항 이동', required:false, infoOnly:true, tags:['이동','기타큐슈'],
+            desc:'시모노세키역 → 기타큐슈공항 버스. 약 40분. 더 가까워서 편리.',
+            duration:'40분', costs:{'2':1500,'4':3000,'5':3750},
+            itin:{time:'10:00',note:'기타큐슈공항 귀국 선택 시'} },
+        ]
+      },
+    ],
+  },
+},
+
+/* ──────────────────────────────────────────────────────────
+   여행 2 : 나고야 (예시)
+────────────────────────────────────────────────────────── */
+{
+  id: 'nagoya',
+  title: '나고야',
+  subtitle: '전국시대 역사 & 산업 문화 코스',
+
+  durationOptions: [
+    { label: '2박3일', value: '3d' },
+    { label: '3박4일', value: '4d' },
+  ],
+
+  partyOptions: [
+    { label: '👫 2인', value: '2' },
+    { label: '👨‍👩‍👧‍👦 4인', value: '4' },
+    { label: '🏠 5인', value: '5' },
+  ],
+
+  departureOptions: [
+    { label: '✈ 인천', value: 'ICN', airport: '인천 → 나고야 중부국제공항 (세ント레아)' },
+    { label: '✈ 김포', value: 'GMP', airport: '김포 → 나고야 중부국제공항' },
+    { label: '✈ 김해', value: 'PUS', airport: '김해 → 나고야 중부국제공항' },
+  ],
+
+  airportOptions: [
+    { label: '세ント레아', value: 'NGO', desc: '나고야 중부국제공항 (나고야 시내에서 약 30분)' },
+  ],
+
+  flightInfo(dep, airport) {
+    const go = {
+      ICN: '인천 → 나고야 세ント레아 (약 2시간)',
+      GMP: '김포 → 나고야 세ント레아 (약 2시간)',
+      PUS: '김해 → 나고야 세ント레아 (약 1시간 40분)',
+    }[dep] || '';
+    return { go, back: '나고야 세ント레아 → 귀국' };
+  },
+
+  fixedCosts: [
+    { label: '항공권 (왕복 추정)',   costs: {'2':360000,'4':720000,'5':900000} },
+    { label: '나고야 시내 교통',     costs: {'2':8000,'4':16000,'5':20000} },
+    { label: '인누야마 당일치기',    costs: {'2':3000,'4':6000,'5':7500} },
+    { label: '식비 추정',           costs: {'2':35000,'4':70000,'5':87500} },
+    { label: '숙박 추정',           costs: {'2':55000,'4':90000,'5':110000} },
+  ],
+
+  durationDays: {
+    '3d': [
+      {
+        label:'Day 1', title:'나고야 시내 핵심',
+        date:'미정', color:'#7B3FA0', night:'나고야 숙박',
+        spots:[
+          { id:'nagoya_castle', name:'나고야성', required:true, tags:['성','역사'],
+            desc:'1612년 도쿠가와 이에야스 축성. 혼마루 어전(本丸御殿) 복원 공개. 금 샤치호코로 유명.',
+            duration:'2시간', costs:{'2':1000,'4':2000,'5':2500},
+            itin:{time:'09:30',note:'나고야역 → 지하철 메이조선 시야쿠쇼역 도보 5분'} },
+          { id:'tokugawa_art', name:'도쿠가와 미술관', required:false, tags:['역사','박물관'],
+            desc:'도쿠가와 가문 소장품. 겐지모노가타리 두루마리 등 국보급 유물.',
+            duration:'1.5시간', costs:{'2':2800,'4':5600,'5':7000},
+            itin:{time:'13:00',note:'나고야역 → 버스 20분'} },
+          { id:'atsuta', name:'아쓰타 신궁', required:true, tags:['신사','역사'],
+            desc:'일본 3대 신궁 중 하나. 삼종신기 중 쿠사나기 검을 봉납. 1,300년 역사.',
+            duration:'1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'15:30',note:'지하철 메이조선 진구니시역 도보 3분'} },
+          { id:'nagoya_meshi', name:'나고야 메시 저녁', required:false, tags:['식도락'],
+            desc:'미소 카츠·히쓰마부시·데바사키 등 나고야 명물 음식. 나고야역 주변 추천.',
+            duration:'1시간', costs:{'2':6000,'4':12000,'5':15000},
+            itin:{time:'18:00',note:'나고야역 주변 식당가'} },
+        ]
+      },
+      {
+        label:'Day 2', title:'이누야마 당일치기',
+        date:'미정', color:'#D85A30', night:'나고야 숙박',
+        spots:[
+          { id:'inuyama_castle', name:'이누야마성', required:true, tags:['성','역사'],
+            desc:'일본에서 가장 오래된 현존 목조 천수. 기소강 위에 세워진 절경. 국보.',
+            duration:'1.5시간', costs:{'2':1200,'4':2400,'5':3000},
+            itin:{time:'09:30',note:'나고야역 → 메이테츠 이누야마선 약 30분'} },
+          { id:'jokamachi', name:'이누야마 성하마을', required:true, tags:['역사'],
+            desc:'에도시대 상점가 재현. 전통 과자·덴가쿠 두부·소바 즐길 수 있음.',
+            duration:'1.5시간', costs:{'2':3000,'4':6000,'5':7500},
+            itin:{time:'11:30',note:'성 아래 도보 이동'} },
+          { id:'meiji_mura', name:'메이지무라 야외 박물관', required:false, tags:['역사','박물관'],
+            desc:'메이지 시대 건축물 67채 이전 복원. 제국호텔 로비 등. 넓어서 반나절 소요.',
+            duration:'3시간', costs:{'2':3800,'4':7600,'5':9500},
+            itin:{time:'14:00',note:'이누야마역 → 버스 20분'} },
+        ]
+      },
+      {
+        label:'Day 3', title:'귀국',
+        date:'미정', color:'#888780', night:null,
+        spots:[
+          { id:'toyota_museum', name:'도요타 산업기술 기념관', required:false, tags:['박물관'],
+            desc:'도요타 발상지 공장 건물 재활용. 방직→자동차로 발전하는 역사 전시. 나고야역 도보 10분.',
+            duration:'2시간', costs:{'2':1000,'4':2000,'5':2500},
+            itin:{time:'09:00',note:'나고야역 도보 10분'} },
+          { id:'ngo_transfer', name:'세ント레아 공항 이동', required:true, infoOnly:true, tags:['이동'],
+            desc:'나고야역 → 메이테츠 공항선 → 세ント레아 약 28분.',
+            duration:'30분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'12:00',note:'출발 3시간 전 공항 도착 권장'} },
+        ]
+      },
+    ],
+
+    '4d': [
+      {
+        label:'Day 1', title:'나고야 시내 핵심',
+        date:'미정', color:'#7B3FA0', night:'나고야 숙박',
+        spots:[
+          { id:'nagoya_castle', name:'나고야성', required:true, tags:['성','역사'],
+            desc:'1612년 도쿠가와 이에야스 축성. 혼마루 어전 복원 공개. 금 샤치호코로 유명.',
+            duration:'2시간', costs:{'2':1000,'4':2000,'5':2500},
+            itin:{time:'09:30',note:'나고야역 → 지하철 메이조선 시야쿠쇼역 도보 5분'} },
+          { id:'atsuta', name:'아쓰타 신궁', required:true, tags:['신사','역사'],
+            desc:'일본 3대 신궁 중 하나. 삼종신기 중 쿠사나기 검을 봉납. 1,300년 역사.',
+            duration:'1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'13:00',note:'지하철 메이조선 진구니시역 도보 3분'} },
+          { id:'tokugawa_art', name:'도쿠가와 미술관', required:false, tags:['역사','박물관'],
+            desc:'도쿠가와 가문 소장품. 겐지모노가타리 두루마리 등 국보급 유물.',
+            duration:'1.5시간', costs:{'2':2800,'4':5600,'5':7000},
+            itin:{time:'15:00',note:'나고야역 → 버스 20분'} },
+          { id:'nagoya_meshi', name:'나고야 메시 저녁', required:false, tags:['식도락'],
+            desc:'미소 카츠·히쓰마부시·데바사키 등 나고야 명물 음식.',
+            duration:'1시간', costs:{'2':6000,'4':12000,'5':15000},
+            itin:{time:'18:00',note:'나고야역 주변 식당가'} },
+        ]
+      },
+      {
+        label:'Day 2', title:'이누야마 당일치기',
+        date:'미정', color:'#D85A30', night:'나고야 숙박',
+        spots:[
+          { id:'inuyama_castle', name:'이누야마성', required:true, tags:['성','역사'],
+            desc:'일본에서 가장 오래된 현존 목조 천수. 기소강 위에 세워진 절경. 국보.',
+            duration:'1.5시간', costs:{'2':1200,'4':2400,'5':3000},
+            itin:{time:'09:30',note:'나고야역 → 메이테츠 이누야마선 약 30분'} },
+          { id:'jokamachi', name:'이누야마 성하마을', required:true, tags:['역사'],
+            desc:'에도시대 상점가 재현. 전통 과자·덴가쿠 두부·소바 즐길 수 있음.',
+            duration:'1.5시간', costs:{'2':3000,'4':6000,'5':7500},
+            itin:{time:'11:30',note:'성 아래 도보 이동'} },
+          { id:'meiji_mura', name:'메이지무라 야외 박물관', required:false, tags:['역사','박물관'],
+            desc:'메이지 시대 건축물 67채 이전 복원. 제국호텔 로비 등. 넓어서 반나절 소요.',
+            duration:'3시간', costs:{'2':3800,'4':7600,'5':9500},
+            itin:{time:'14:00',note:'이누야마역 → 버스 20분'} },
+        ]
+      },
+      {
+        label:'Day 3', title:'나고야 산업·문화',
+        date:'미정', color:'#185FA5', night:'나고야 숙박',
+        spots:[
+          { id:'toyota_museum', name:'도요타 산업기술 기념관', required:false, tags:['박물관'],
+            desc:'도요타 발상지 공장 건물 재활용. 방직→자동차로 발전하는 역사 전시.',
+            duration:'2시간', costs:{'2':1000,'4':2000,'5':2500},
+            itin:{time:'09:30',note:'나고야역 도보 10분'} },
+          { id:'toyota_auto', name:'도요타 자동차 박물관', required:false, tags:['박물관'],
+            desc:'세계 자동차 역사 총집합. 희귀 클래식카 200여 대. 차 좋아하면 필수.',
+            duration:'2시간', costs:{'2':2400,'4':4800,'5':6000},
+            itin:{time:'13:00',note:'지하철 히가시야마선 + 리니모 약 40분'} },
+          { id:'noritake', name:'노리타케 가든', required:false, tags:['문화','박물관'],
+            desc:'세계적 도자기 브랜드 노리타케 발상지. 공원+박물관+공방. 나고야역 도보 15분.',
+            duration:'2시간', costs:{'2':1000,'4':2000,'5':2500},
+            itin:{time:'09:30',note:'나고야역 도보 15분. 도요타 기념관과 근접'} },
+        ]
+      },
+      {
+        label:'Day 4', title:'귀국',
+        date:'미정', color:'#888780', night:null,
+        spots:[
+          { id:'osu', name:'오스 상점가 아침 산책', required:false, tags:['쇼핑'],
+            desc:'나고야 최대 전통 상점가. 빈티지·애니굿즈·나고야 명물 식당 밀집.',
+            duration:'1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'09:00',note:'지하철 쓰루마이선 오스칸논역'} },
+          { id:'ngo_transfer', name:'세ント레아 공항 이동', required:true, infoOnly:true, tags:['이동'],
+            desc:'나고야역 → 메이테츠 공항선 → 세ント레아 약 28분.',
+            duration:'30분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'12:00',note:'출발 3시간 전 공항 도착 권장'} },
+        ]
+      },
+    ],
+  },
+},
+
+]; // END TRIPS
+
+/* ═══════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════ */
+const S = {
+  tripIdx: 0,
+  duration: null,
+  party: null,
+  departure: null,
+  airport: null,
+  selected: new Set(),
+};
+
+function T()   { return TRIPS[S.tripIdx]; }
+function dur() { return S.duration || T().durationOptions[0].value; }
+function pty() { return S.party    || T().partyOptions[0].value; }
+function dep() { return S.departure|| T().departureOptions[0].value; }
+function apt() { return S.airport  || T().airportOptions[0].value; }
+function days(){ return T().durationDays[dur()]; }
+
+function initTrip(idx){
+  S.tripIdx = idx;
+  const t = T();
+  S.duration  = t.durationOptions[0].value;
+  S.party     = t.partyOptions[0].value;
+  S.departure = t.departureOptions[0].value;
+  S.airport   = t.airportOptions[0].value;
+  S.selected  = new Set();
+  resetDefaults();
+}
+
+function resetDefaults(){
+  S.selected = new Set();
+  days().forEach(d => d.spots.forEach(s => {
+    if(s.required) S.selected.add(s.id);
+  }));
+  const defaults = ['karato','daishoin','miyajima_lunch','nagoya_meshi','jokamachi'];
+  defaults.forEach(id => S.selected.add(id));
+}
+
+function isActive(s){ return s.required || S.selected.has(s.id); }
+function activeSpots(d){ return d.spots.filter(isActive); }
+function spotCost(s){ return s.costs[pty()] ?? 0; }
+function fmt(n){ return n===0 ? '무료' : `¥${n.toLocaleString()}`; }
+
+function el(tag,cls,html){
+  const e=document.createElement(tag);
+  if(cls) e.className=cls;
+  if(html!==undefined) e.innerHTML=html;
+  return e;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RENDER FUNCTIONS
+═══════════════════════════════════════════════════════════ */
+function renderAll(){
+  renderHeader(); renderCfg(); renderFlightBanner();
+  renderDays(); renderItin(); renderCost();
+}
+
+function renderHeader(){
+  const t=T();
+  document.getElementById('pageTitle').textContent = t.title+' 여행 플래너';
+  document.getElementById('hdrTitle').textContent  = t.title;
+  document.getElementById('hdrSub').textContent    = t.subtitle;
+  const d = T().durationOptions.find(x=>x.value===dur());
+  document.getElementById('hdrBadge').textContent  = d ? d.label : '';
+
+  const dep_info = T().departureOptions.find(x=>x.value===dep());
+  const apt_info = T().airportOptions.find(x=>x.value===apt());
+  const route = document.getElementById('hdrRoute');
+  route.innerHTML='';
+  const nodes = [
+    dep_info ? dep_info.airport.split('→')[0].trim() : '',
+    ...days().map(d=>d.title).filter(Boolean),
+    apt_info ? apt_info.label+'공항' : '',
+  ].filter(Boolean);
+  nodes.forEach((n,i)=>{
+    route.appendChild(el('span','hdr-node',n));
+    if(i<nodes.length-1) route.appendChild(el('span','hdr-arr','→'));
+  });
+}
+
+function makeSeg(id, options, current, onChange){
+  const seg=document.getElementById(id);
+  seg.innerHTML='';
+  options.forEach(o=>{
+    const btn=el('button', current===o.value?'on':'', o.label);
+    btn.onclick=()=>{ onChange(o.value); renderAll(); };
+    seg.appendChild(btn);
+  });
+}
+
+function renderCfg(){
+  const t=T();
+  const sel=document.getElementById('tripSel');
+  sel.innerHTML='';
+  TRIPS.forEach((tr,i)=>{
+    const opt=document.createElement('option');
+    opt.value=i; opt.textContent=tr.title;
+    if(i===S.tripIdx) opt.selected=true;
+    sel.appendChild(opt);
+  });
+
+  makeSeg('durSeg',    t.durationOptions,   dur(),  v=>{ S.duration=v; resetDefaults(); });
+  makeSeg('partySeg',  t.partyOptions,      pty(),  v=>S.party=v);
+  makeSeg('depSeg',    t.departureOptions,  dep(),  v=>S.departure=v);
+  makeSeg('airportSeg',t.airportOptions,    apt(),  v=>S.airport=v);
+}
+
+function renderFlightBanner(){
+  const t  = T();
+  const fi = t.flightInfo(dep(), apt());
+  const depInfo = t.departureOptions.find(x=>x.value===dep());
+  const aptInfo = t.airportOptions.find(x=>x.value===apt());
+  const banner  = document.getElementById('flightBanner');
+
+  if(!fi.go && !fi.back){ banner.style.display='none'; return; }
+  banner.style.display='flex';
+  banner.innerHTML = `
+    <span class="fl-item">✈️ <b>가는 편</b>${fi.go}</span>
+    <span class="fl-arr">|</span>
+    <span class="fl-item">🛬 <b>오는 편</b>${fi.back}</span>
+    ${aptInfo ? `<span class="fl-arr">|</span><span class="fl-item">💡 ${aptInfo.desc}</span>` : ''}
+  `;
+}
+
+function renderDays(){
+  const col=document.getElementById('colDays'); col.innerHTML='';
+  days().forEach(day=>{
+    const cnt=activeSpots(day).length;
+    const block=el('div','day-block');
+    block.innerHTML=`<div class="day-hd">
+      <div class="day-dot" style="background:${day.color}"></div>
+      <div class="day-hd-info">
+        <div class="day-hd-title">${day.label}&ensp;·&ensp;${day.title}</div>
+        <div class="day-hd-sub">${day.date}${day.night?'&ensp;→&ensp;'+day.night:''}</div>
+      </div>
+      <div class="day-hd-cnt">${cnt}곳 선택</div>
+    </div>`;
+
+    const req=day.spots.filter(s=>s.required);
+    const opt=day.spots.filter(s=>!s.required&&!s.infoOnly);
+    const info=day.spots.filter(s=>s.infoOnly);
+
+    if(req.length){
+      block.appendChild(el('div','sec-lbl','필수'));
+      const g=el('div','spots-grid');
+      req.forEach(s=>g.appendChild(makeCard(s)));
+      block.appendChild(g);
+    }
+    if(opt.length){
+      block.appendChild(el('div','sec-lbl','선택'));
+      const g=el('div','spots-grid');
+      opt.forEach(s=>g.appendChild(makeCard(s)));
+      block.appendChild(g);
+    }
+    if(info.length){
+      block.appendChild(el('div','sec-lbl','이동 정보'));
+      const g=el('div','spots-grid');
+      info.forEach(s=>g.appendChild(makeCard(s)));
+      block.appendChild(g);
+    }
+    col.appendChild(block);
+  });
+}
+
+function makeCard(s){
+  const on=isActive(s);
+  const isInfo=s.infoOnly;
+  const cls=`spot${isInfo?' info-only':on?(s.required?' req':' sel'):''}`;
+  const c=el('div',cls);
+  const cost=spotCost(s);
+  const tags=s.tags.map(t=>`<span class="stag${s.required?' req':isInfo?' info':''}">${t}</span>`).join('');
+
+  c.innerHTML=`
+    ${!isInfo?`<div class="spot-chk">${on?'✓':''}</div>`:''}
+    <div class="spot-name">${s.name}</div>
+    <div class="spot-tags">${tags}</div>
+    <div class="spot-desc">${s.desc}</div>
+    <div class="spot-meta"><span>${s.duration}</span><span>${isInfo?'':fmt(cost)+'/'+pty()+'인'}</span></div>`;
+
+  if(!s.required&&!isInfo){
+    c.onclick=()=>{
+      if(S.selected.has(s.id)) S.selected.delete(s.id);
+      else S.selected.add(s.id);
+      renderAll();
+    };
+  }
+  return c;
+}
+
+function renderItin(){
+  const body=document.getElementById('itinBody'); body.innerHTML='';
+  let count=0;
+  days().forEach(day=>{
+    const spots=activeSpots(day); if(!spots.length) return;
+    count+=spots.length;
+    body.appendChild(el('div','itin-day-lbl',
+      `<span class="itin-dot" style="background:${day.color}"></span>${day.label} · ${day.title}`));
+    spots.forEach(s=>{
+      const cost=spotCost(s);
+      const row=el('div','itin-row');
+      row.innerHTML=`<div class="itin-t">${s.itin.time}</div><div>
+        <div class="itin-n">${s.name}</div>
+        <div class="itin-sub">${s.itin.note}${!s.infoOnly?' · '+fmt(cost):''}</div></div>`;
+      body.appendChild(row);
+    });
+  });
+  if(!count) body.innerHTML='<div class="itin-empty">장소를 선택하면 일정이 나타납니다</div>';
+  document.getElementById('itinHead').textContent=`선택 일정 (${count}곳)`;
+}
+
+function renderCost(){
+  const body=document.getElementById('costBody'); body.innerHTML='';
+  const t=T();
+  let spotTotal=0;
+  days().forEach(d=>activeSpots(d).forEach(s=>{ if(!s.infoOnly) spotTotal+=spotCost(s); }));
+  let fixedTotal=0;
+  const rows=[{label:'입장료 합계',val:spotTotal}];
+  t.fixedCosts.forEach(fc=>{
+    const val=fc.costs[pty()]??0; fixedTotal+=val;
+    rows.push({label:fc.label,val});
+  });
+  const total=spotTotal+fixedTotal;
+  rows.forEach(r=>body.appendChild(el('div','cost-row',
+    `<span>${r.label}</span><span>¥${r.val.toLocaleString()}</span>`)));
+  body.appendChild(el('div','cost-total',
+    `<span>합계 (${pty()}인)</span><span>¥${total.toLocaleString()}</span>`));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PRINT
+═══════════════════════════════════════════════════════════ */
+function openPrint(){ buildPrint(); document.getElementById('overlay').classList.add('open'); document.body.style.overflow='hidden'; }
+function closePrint(){ document.getElementById('overlay').classList.remove('open'); document.body.style.overflow=''; }
+
+function buildPrint(){
+  const t=T();
+  let spotTotal=0;
+  days().forEach(d=>activeSpots(d).forEach(s=>{ if(!s.infoOnly) spotTotal+=spotCost(s); }));
+  const cnt=days().flatMap(d=>activeSpots(d)).length;
+  const dOpt=t.durationOptions.find(x=>x.value===dur());
+  const fi=t.flightInfo(dep(),apt());
+
+  document.getElementById('pTitle').textContent = t.title+' 여행 일정표';
+  document.getElementById('pSub').textContent   = t.subtitle;
+  document.getElementById('pM1').innerHTML = `<b>📅</b>${dOpt?dOpt.label:''}`;
+  document.getElementById('pM2').innerHTML = `<b>👥</b>${pty()}인`;
+  document.getElementById('pM3').innerHTML = `<b>📍</b>총 ${cnt}곳`;
+  document.getElementById('pM4').innerHTML = fi.go ? `<b>✈️</b>${fi.go.split('(')[0].trim()}` : '';
+
+  const body=document.getElementById('pbody'); body.innerHTML='';
+
+  if(fi.go||fi.back){
+    body.appendChild(el('div','pflight',
+      `✈️ ${fi.go}${fi.back?' &ensp;|&ensp; 🛬 '+fi.back:''}`));
+  }
+
+  days().forEach(day=>{
+    const spots=activeSpots(day);
+    const div=el('div','pday');
+    div.innerHTML=`<div class="pday-hd" style="border-color:${day.color}">
+      <div class="pday-dot" style="background:${day.color}"></div>
+      <div class="pday-label" style="color:${day.color}">${day.label}&ensp;·&ensp;${day.title}</div>
+      <div class="pday-date">${day.date}</div></div>`;
+
+    if(!spots.length) div.appendChild(el('div','','<span style="font-size:11px;color:#7e7165">선택된 장소 없음</span>'));
+
+    spots.forEach(s=>{
+      const cost=spotCost(s);
+      const sd=el('div','pspot');
+      sd.innerHTML=`<div class="pspot-time">${s.itin.time}</div>
+        <div class="pspot-body">
+          <div class="pspot-name">${s.name}${s.required?'<span class="pspot-req">(필수)</span>':''}</div>
+          <div class="pspot-info">${s.itin.note} · ${s.duration}</div>
+          <div class="pspot-cost">${s.infoOnly?'이동':cost===0?'무료':'¥'+cost.toLocaleString()+'/'+pty()+'인'}</div>
+        </div>`;
+      div.appendChild(sd);
+    });
+    if(day.night) div.appendChild(el('div','pnight','🏨 '+day.night));
+    body.appendChild(div);
+  });
+
+  let fixedTotal=0;
+  const ct=el('div','pcost');
+  let html=`<div class="pcost-row"><span>입장료 합계</span><span>¥${spotTotal.toLocaleString()}</span></div>`;
+  t.fixedCosts.forEach(fc=>{ const v=fc.costs[pty()]??0; fixedTotal+=v; html+=`<div class="pcost-row"><span>${fc.label}</span><span>¥${v.toLocaleString()}</span></div>`; });
+  html+=`<div class="pcost-total"><span>총 예상 비용 (${pty()}인)</span><span>¥${(spotTotal+fixedTotal).toLocaleString()}</span></div>`;
+  ct.innerHTML=html; body.appendChild(ct);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ACTIONS
+═══════════════════════════════════════════════════════════ */
+function switchTrip(idx){ initTrip(parseInt(idx)); renderAll(); }
+function resetSelections(){ if(!confirm('초기화할까요?')) return; resetDefaults(); renderAll(); }
+
+/* ── BOOT ── */
+initTrip(0);
+renderAll();
+</script>
+
 </body>
 </html>
