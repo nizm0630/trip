@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">여행 플래너</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+     HOW TO EXTEND THIS PLANNER
+     ============================================================
+     1. 여행지 바꾸기:   TRIP_DATA 객체의 내용을 수정하세요.
+     2. 날짜/인원 추가:  TRIP_DATA.partyOptions 배열에 추가하세요.
+     3. 장소 추가:       day.spots 배열에 spot 객체를 추가하세요.
+     4. 비용 항목 추가:  TRIP_DATA.fixedCosts 배열에 추가하세요.
+     5. 여러 여행 지원:  TRIPS 배열에 TRIP_DATA 형태의 객체를 추가하면
+                        상단 드롭다운으로 여행 전환이 됩니다.
+     ============================================================ -->
+
+<style>
+/* ── RESET & BASE ────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ink:#18120a; --paper:#faf8f3; --white:#ffffff;
+  --b1:#e2d9cc; --b2:#cec3b3; --b3:#b8aa97;
+  --muted:#7e7165; --faint:#ede7dd;
+  --gold:#c8a24a; --gold-bg:#fdf6e8;
+  --sel-bg:#eaf3fb; --sel-bd:#82bce8; --sel-tx:#1653a0;
+  --req-bg:#eaf5ee; --req-bd:#74c79a; --req-tx:#1a6636;
+  --shadow:0 2px 12px rgba(0,0,0,0.08);
+}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;}
+button{font-family:inherit;cursor:pointer;}
+a{color:inherit;}
+
+/* ── HEADER ──────────────────────────────────────────────────── */
+.hdr{background:var(--ink);color:#faf8f3;padding:22px 28px 18px;}
+.hdr-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;}
+.hdr h1{font-family:'Noto Serif KR',serif;font-size:19px;font-weight:700;line-height:1.35;}
+.hdr-sub{font-size:11px;color:var(--gold);margin-top:3px;letter-spacing:.12em;}
+.hdr-badge{background:var(--gold);color:var(--ink);padding:5px 13px;font-size:11px;font-weight:700;border-radius:2px;white-space:nowrap;align-self:flex-start;}
+.hdr-route{display:flex;align-items:center;gap:7px;margin-top:13px;flex-wrap:wrap;}
+.hdr-node{background:rgba(255,255,255,.07);border:1px solid rgba(200,162,74,.35);padding:4px 11px;font-size:11px;border-radius:2px;}
+.hdr-arr{color:var(--gold);font-size:12px;}
+
+/* ── TOOLBAR ─────────────────────────────────────────────────── */
+.toolbar{
+  background:var(--white);border-bottom:1px solid var(--b1);
+  padding:9px 28px;display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 1px 5px rgba(0,0,0,.05);flex-wrap:wrap;
+}
+.tb-label{font-size:11px;color:var(--muted);font-weight:500;white-space:nowrap;}
+.tb-seg{display:flex;border:1px solid var(--b2);border-radius:4px;overflow:hidden;}
+.tb-seg button{
+  padding:5px 14px;font-size:12px;font-weight:700;
+  background:transparent;border:none;color:var(--muted);
+  transition:background .1s,color .1s;white-space:nowrap;
+}
+.tb-seg button.on{background:var(--ink);color:var(--white);}
+.tb-sep{width:1px;background:var(--b1);margin:0 4px;}
+
+/* trip selector */
+.trip-sel{
+  padding:5px 10px;font-family:inherit;font-size:12px;font-weight:500;
+  border:1px solid var(--b2);border-radius:4px;background:var(--white);
+  color:var(--ink);cursor:pointer;
+}
+
+/* reset + print */
+.tb-right{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.tb-btn{
+  padding:6px 14px;font-size:12px;font-weight:700;
+  border-radius:4px;border:1px solid var(--b2);
+  background:transparent;color:var(--muted);transition:background .12s;
+}
+.tb-btn:hover{background:var(--faint);}
+.tb-btn.primary{background:var(--gold);border-color:var(--gold);color:var(--ink);}
+.tb-btn.primary:hover{opacity:.85;}
+
+/* ── LAYOUT ──────────────────────────────────────────────────── */
+.layout{display:grid;grid-template-columns:1fr 310px;align-items:start;}
+.col-days{padding:18px 22px;display:flex;flex-direction:column;gap:18px;}
+.col-right{padding:18px 20px 18px 6px;position:sticky;top:50px;display:flex;flex-direction:column;gap:10px;}
+
+/* ── DAY BLOCK ───────────────────────────────────────────────── */
+.day-block{background:var(--white);border:1px solid var(--b1);border-radius:8px;overflow:hidden;}
+.day-hd{display:flex;align-items:center;gap:9px;padding:9px 13px;border-bottom:1px solid var(--b1);}
+.day-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.day-hd-info{flex:1;}
+.day-hd-title{font-size:13px;font-weight:700;}
+.day-hd-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+.day-hd-cnt{font-size:10px;color:var(--muted);}
+.sec-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:7px 13px 3px;}
+.spots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:7px;padding:3px 11px 11px;}
+
+/* ── SPOT CARD ───────────────────────────────────────────────── */
+.spot{
+  border:1px solid var(--b1);border-radius:6px;padding:9px 11px;
+  cursor:pointer;transition:border-color .12s,background .1s;position:relative;
+}
+.spot:hover{border-color:var(--b2);}
+.spot.sel{border-color:var(--sel-bd);background:var(--sel-bg);}
+.spot.req{border-color:var(--req-bd);background:var(--req-bg);cursor:default;}
+.spot-chk{
+  position:absolute;top:8px;right:8px;width:15px;height:15px;border-radius:50%;
+  border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;
+  font-size:8px;background:var(--white);flex-shrink:0;
+}
+.spot.sel .spot-chk{background:var(--sel-bg);border-color:var(--sel-bd);color:var(--sel-tx);}
+.spot.req .spot-chk{background:var(--req-bg);border-color:var(--req-bd);color:var(--req-tx);}
+.spot-name{font-size:12px;font-weight:700;line-height:1.3;margin-bottom:3px;padding-right:18px;}
+.spot.sel .spot-name{color:var(--sel-tx);}
+.spot.req .spot-name{color:var(--req-tx);}
+.spot-tags{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px;}
+.stag{font-size:9px;padding:1px 5px;border-radius:3px;background:var(--faint);color:var(--muted);}
+.stag.req{background:var(--req-bg);color:var(--req-tx);}
+.spot-desc{font-size:10px;color:var(--muted);line-height:1.45;margin-bottom:4px;}
+.spot-meta{font-size:9px;color:#a09080;display:flex;gap:5px;flex-wrap:wrap;}
+
+/* ── RIGHT PANEL ─────────────────────────────────────────────── */
+.panel{background:var(--white);border:1px solid var(--b1);border-radius:8px;overflow:hidden;}
+.panel-hd{padding:9px 13px;border-bottom:1px solid var(--b1);font-size:12px;font-weight:700;}
+.panel-bd{padding:9px 13px;}
+.itin-day-lbl{font-size:10px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:5px;padding:5px 0 1px;}
+.itin-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.itin-row{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid var(--b1);}
+.itin-row:last-child{border-bottom:none;}
+.itin-t{font-size:10px;font-weight:700;color:var(--muted);min-width:33px;padding-top:1px;}
+.itin-n{font-size:11px;font-weight:700;line-height:1.3;}
+.itin-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+.itin-empty{font-size:11px;color:var(--muted);padding:6px 0;}
+
+/* cost */
+.cost-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--b1);color:var(--muted);}
+.cost-row:last-child{border-bottom:none;}
+.cost-total{display:flex;justify-content:space-between;font-size:12px;font-weight:700;padding:6px 0 2px;border-top:1.5px solid var(--b2);margin-top:3px;}
+
+/* ── PRINT OVERLAY ───────────────────────────────────────────── */
+.overlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.6);overflow-y:auto;padding:28px 16px;}
+.overlay.open{display:block;}
+.psheet{background:var(--white);max-width:680px;margin:0 auto;border-radius:10px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.28);}
+.psh{background:var(--ink);color:#faf8f3;padding:20px 26px;}
+.psh h2{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700;}
+.psh-sub{font-size:11px;color:var(--gold);margin-top:3px;letter-spacing:.1em;}
+.psh-meta{display:flex;gap:18px;margin-top:11px;flex-wrap:wrap;}
+.psh-meta span{font-size:11px;}
+.psh-meta b{color:var(--gold);margin-right:3px;}
+.pbody{padding:22px 26px;}
+.pday{margin-bottom:22px;}
+.pday-hd{display:flex;align-items:center;gap:9px;padding-bottom:8px;margin-bottom:10px;border-bottom:2px solid;}
+.pday-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.pday-label{font-size:14px;font-weight:700;}
+.pday-date{margin-left:auto;font-size:11px;color:var(--muted);}
+.pspot{display:flex;border:1px solid var(--b1);border-radius:5px;overflow:hidden;margin-bottom:6px;}
+.pspot-time{min-width:56px;padding:10px 5px;background:var(--faint);border-right:1px solid var(--b1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;text-align:center;}
+.pspot-body{padding:9px 13px;flex:1;}
+.pspot-name{font-size:12px;font-weight:700;margin-bottom:2px;}
+.pspot-req{font-size:9px;color:var(--req-tx);font-weight:400;margin-left:4px;}
+.pspot-info{font-size:10px;color:var(--muted);line-height:1.5;}
+.pspot-tags{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;}
+.ptag{font-size:9px;padding:1px 5px;border-radius:3px;background:var(--faint);color:var(--muted);}
+.pspot-cost{font-size:10px;font-weight:700;color:var(--req-tx);margin-top:2px;}
+.pnight{font-size:10px;color:var(--muted);padding:5px 10px;background:var(--faint);border-radius:3px;margin-top:5px;}
+.pcost{margin-top:18px;border:1px solid var(--b1);border-radius:7px;overflow:hidden;}
+.pcost-row{display:flex;justify-content:space-between;padding:7px 14px;font-size:11px;border-bottom:1px solid var(--b1);color:var(--muted);}
+.pcost-row:last-child{border-bottom:none;}
+.pcost-total{display:flex;justify-content:space-between;padding:10px 14px;font-size:13px;font-weight:700;background:var(--ink);color:#faf8f3;}
+.pactions{padding:13px 26px;border-top:1px solid var(--b1);display:flex;gap:8px;align-items:center;background:var(--paper);}
+.pnote{font-size:10px;color:var(--muted);flex:1;line-height:1.6;}
+.pbtn{padding:7px 16px;font-family:inherit;font-size:12px;font-weight:700;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--muted);cursor:pointer;}
+.pbtn:hover{background:var(--faint);}
+.pbtn.primary{background:var(--ink);border-color:var(--ink);color:var(--white);}
+.pbtn.primary:hover{opacity:.85;}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────── */
+@media(max-width:720px){
+  .layout{grid-template-columns:1fr;}
+  .col-right{position:static;padding:0 16px 20px;}
+  .spots-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:440px){.spots-grid{grid-template-columns:1fr;}}
+
+/* ── PRINT MEDIA ─────────────────────────────────────────────── */
+@media print{
+  body>*:not(.overlay){display:none!important;}
+  .overlay{display:block!important;position:static!important;background:none!important;padding:0!important;overflow:visible!important;}
+  .psheet{box-shadow:none!important;border-radius:0!important;max-width:100%!important;}
+  .pactions{display:none!important;}
+  @page{margin:14mm;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     ██████╗  █████╗ ████████╗ █████╗
+     ██╔══██╗██╔══██╗╚══██╔══╝██╔══██╗
+     ██║  ██║███████║   ██║   ███████║
+     ██║  ██║██╔══██║   ██║   ██╔══██║
+     ██████╔╝██║  ██║   ██║   ██║  ██║
+     ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝
+
+     모든 여행 데이터는 아래 TRIPS 배열에서 관리합니다.
+     새 여행을 추가하려면 TRIPS 배열에 새 객체를 추가하세요.
+     ============================================================ -->
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   TRIPS  —  여행 데이터 정의
+   각 trip 객체 구조:
+   {
+     id:        string          고유 ID
+     title:     string          상단 제목
+     subtitle:  string          부제목
+     dateRange: string          날짜 표시
+     route:     string[]        경로 노드 배열
+     nights:    string          숙박 요약
+
+     partyOptions: [            인원 옵션 (2개 이상 가능)
+       { label, value }
+     ]
+
+     fixedCosts: [              고정 비용 (인원별 금액)
+       { label, costs: { [value]: number } }
+     ]
+
+     days: [                    일별 일정
+       {
+         label:  string         "Day 1"
+         title:  string         "히로시마 시내"
+         date:   string         "7/16 (수)"
+         color:  string         hex
+         night:  string|null    숙박지
+
+         spots: [               장소 목록
+           {
+             id:       string   고유 ID
+             name:     string
+             required: bool     필수 여부
+             tags:     string[]
+             desc:     string
+             duration: string   "1.5시간"
+             costs:    { [partyValue]: number }
+             itin: {
+               time: string     "09:30"
+               note: string     이동 방법/팁
+             }
+           }
+         ]
+       }
+     ]
+   }
+   ═══════════════════════════════════════════════════════════════ */
+
+const TRIPS = [
+
+  /* ─────────────────────────────────────────────────────────────
+     여행 1 : 히로시마 + 미야지마 + 시모노세키  3박4일
+     ───────────────────────────────────────────────────────────── */
+  {
+    id: 'hiroshima-shimonoseki-2025',
+    title: '히로시마 · 미야지마 · 시모노세키',
+    subtitle: '성 & 역사 집중 코스 · 3박4일',
+    dateRange: '2025. 7. 16 — 7. 19',
+    route: ['히로시마 2박', '시모노세키 1박', '귀국'],
+    nights: '히로시마 2박 → 시모노세키 1박',
+
+    partyOptions: [
+      { label: '👫 2인', value: '2' },
+      { label: '👨‍👩‍👧‍👦 4인', value: '4' },
+    ],
+
+    /* 고정 비용: 입장료 외 교통·숙박·식비 등 */
+    fixedCosts: [
+      { label: '신칸센 (히로시마↔시모노세키)',  costs: { '2': 20000, '4': 40000 } },
+      { label: '페리 (미야지마 왕복)',           costs: { '2':  2000, '4':  4000 } },
+      { label: '식비 추정 (3박4일)',             costs: { '2': 32000, '4': 64000 } },
+      { label: '숙박 추정 (3박)',               costs: { '2': 60000, '4':120000 } },
+    ],
+
+    days: [
+      {
+        label: 'Day 1', title: '히로시마 시내',
+        date: '7/16 (수)', color: '#378ADD', night: '히로시마 숙박',
+        spots: [
+          {
+            id: 'hcastle', name: '히로시마성', required: true,
+            tags: ['성', '역사'],
+            desc: '1589년 축성. 원폭 소실 후 재건. 내부 갑옷·검 체험 가능.',
+            duration: '1.5시간', costs: { '2': 740, '4': 1480 },
+            itin: { time: '09:30', note: '히로시마역 → 버스 15분' }
+          },
+          {
+            id: 'shukkei', name: '슈케이엔 정원', required: true,
+            tags: ['역사', '정원'],
+            desc: '1620년 조성 에도시대 지천회유식 정원. 히로시마성과 도보 10분.',
+            duration: '1시간', costs: { '2': 700, '4': 1400 },
+            itin: { time: '11:15', note: '히로시마성에서 도보 10분' }
+          },
+          {
+            id: 'peacedome', name: '원폭 돔', required: true,
+            tags: ['역사', '유네스코'],
+            desc: '1945년 8월 6일 원폭 피폭 유적. 유네스코 세계문화유산.',
+            duration: '30분', costs: { '2': 0, '4': 0 },
+            itin: { time: '13:30', note: '평화공원 도보 이동' }
+          },
+          {
+            id: 'peacemuseum', name: '평화기념 박물관', required: true,
+            tags: ['역사', '박물관'],
+            desc: '세계에서 가장 강렬한 역사 박물관. 성수기 온라인 사전 예약 권장.',
+            duration: '1.5~2시간', costs: { '2': 400, '4': 800 },
+            itin: { time: '14:15', note: '원폭 돔 바로 옆. 온라인 예약 추천' }
+          },
+          {
+            id: 'orizuru', name: '오리즈루 타워', required: false,
+            tags: ['전망'],
+            desc: '원폭 돔 바로 옆 전망 타워. 종이학 체험 포함.',
+            duration: '1시간', costs: { '2': 3000, '4': 6000 },
+            itin: { time: '16:30', note: '평화공원 관람 후 연계' }
+          },
+          {
+            id: 'peacehall', name: '국립 원폭 희생자 추도평화관', required: false,
+            tags: ['역사'],
+            desc: '무료 추도 시설. 박물관 인근. 조용하고 격조 있는 공간.',
+            duration: '45분', costs: { '2': 0, '4': 0 },
+            itin: { time: '16:00', note: '박물관 관람 후 이동' }
+          },
+        ]
+      },
+
+      {
+        label: 'Day 2', title: '미야지마',
+        date: '7/17 (목)', color: '#1D9E75', night: '히로시마 숙박',
+        spots: [
+          {
+            id: 'itsukushima', name: '이쓰쿠시마 신사', required: true,
+            tags: ['신사', '유네스코'],
+            desc: '바다 위 도리이로 유명. 헤이안 시대 창건. 만조 때 물 위에 떠 보임.',
+            duration: '1시간', costs: { '2': 600, '4': 1200 },
+            itin: { time: '09:30', note: '히로시마역 → 전철 25분 → 페리 10분' }
+          },
+          {
+            id: 'otorii', name: '오토리이 (대도리이)', required: true,
+            tags: ['신사', '포토스팟'],
+            desc: '간조 때 직접 걸어가서 올려다볼 수 있음. 조수 시간 사전 확인 필수.',
+            duration: '30분', costs: { '2': 0, '4': 0 },
+            itin: { time: '10:45', note: '간조 시간 맞춰 이동 — tide-forecast.com 확인' }
+          },
+          {
+            id: 'daishoin', name: '다이쇼인 사원', required: false,
+            tags: ['사원', '역사'],
+            desc: '미야지마 산중 사원. 500 나한상 계단길이 압권. 무료.',
+            duration: '1시간', costs: { '2': 0, '4': 0 },
+            itin: { time: '12:00', note: '신사에서 도보 15분' }
+          },
+          {
+            id: 'misen', name: '미센 산 등산', required: false,
+            tags: ['자연'],
+            desc: '해발 535m. 케이블카 또는 도보 등반. 정상 전망 최고.',
+            duration: '2~3시간', costs: { '2': 3600, '4': 7200 },
+            itin: { time: '13:00', note: '왕복 케이블카 어른 1,800엔' }
+          },
+          {
+            id: 'miyajima_lunch', name: '미야지마 굴·모미지 만주', required: false,
+            tags: ['식도락'],
+            desc: '미야지마 명물 구이 굴과 단풍 모양 화과자. 참배길 즉석 구매.',
+            duration: '30분', costs: { '2': 2000, '4': 4000 },
+            itin: { time: '11:30', note: '참배길 상점가에서 점심' }
+          },
+        ]
+      },
+
+      {
+        label: 'Day 3', title: '시모노세키',
+        date: '7/18 (금)', color: '#BA7517', night: '시모노세키 숙박',
+        spots: [
+          {
+            id: 'dannoura', name: '단노우라 고전장', required: true,
+            tags: ['역사', '겐페이'],
+            desc: '1185년 겐페이 전쟁 최후 결전지. 간몬 해협 해안 산책로.',
+            duration: '1시간', costs: { '2': 0, '4': 0 },
+            itin: { time: '10:00', note: '시모노세키역 → 버스 15분' }
+          },
+          {
+            id: 'akama', name: '아카마 신궁', required: true,
+            tags: ['신사', '역사'],
+            desc: '단노우라에서 수몰된 안토쿠 천황을 모신 주홍빛 신사.',
+            duration: '45분', costs: { '2': 0, '4': 0 },
+            itin: { time: '11:15', note: '단노우라에서 도보 5분' }
+          },
+          {
+            id: 'karato', name: '가라토 수산시장', required: false,
+            tags: ['시장', '식도락'],
+            desc: '금요일 방문! 복어·성게 초밥 노점 운영. 시모노세키 최대 명물.',
+            duration: '1시간', costs: { '2': 4000, '4': 8000 },
+            itin: { time: '12:30', note: '금요일 노점 점심 강력 추천' }
+          },
+          {
+            id: 'chofu', name: '초후 모리 저택', required: false,
+            tags: ['사무라이', '역사'],
+            desc: '메이지 시대 번주 저택. 실제 사무라이 생활 공간 공개.',
+            duration: '1시간', costs: { '2': 1000, '4': 2000 },
+            itin: { time: '14:30', note: '가라토에서 버스 20분' }
+          },
+          {
+            id: 'chofu_g', name: '초후 정원', required: false,
+            tags: ['정원', '역사'],
+            desc: '에도시대 번주 조성 전통 정원. 모리 저택과 도보 10분.',
+            duration: '45분', costs: { '2': 500, '4': 1000 },
+            itin: { time: '15:45', note: '모리 저택에서 도보 10분' }
+          },
+        ]
+      },
+
+      {
+        label: 'Day 4', title: '귀국',
+        date: '7/19 (토)', color: '#888780', night: null,
+        spots: [
+          {
+            id: 'karato_am', name: '가라토 항구 아침 산책', required: false,
+            tags: ['항구'],
+            desc: '아침 일찍 간몬 해협 뷰. 구 아키타 상회 건물 외관 감상 가능.',
+            duration: '30분', costs: { '2': 0, '4': 0 },
+            itin: { time: '08:30', note: '출발 전 숙소 주변 산책' }
+          },
+        ]
+      },
+    ]
+  },
+
+  /* ─────────────────────────────────────────────────────────────
+     여행 2 : 여기에 다음 여행을 추가하세요
+     예시 구조를 복사해서 id, title, days 등을 수정하면 됩니다.
+     ───────────────────────────────────────────────────────────── */
+  // {
+  //   id: 'kyoto-osaka-2026',
+  //   title: '교토 · 오사카 여행',
+  //   ...
+  // },
+
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════ */
+const state = {
+  tripIdx: 0,
+  party: null,    // 현재 인원 value (string)
+  selected: new Set(),
+};
+
+function trip()   { return TRIPS[state.tripIdx]; }
+function party()  { return state.party || trip().partyOptions[0].value; }
+
+function initTrip(idx) {
+  state.tripIdx = idx;
+  const t = trip();
+  state.party = t.partyOptions[0].value;
+  state.selected = new Set();
+  // 필수 장소 선택 상태로 초기화
+  t.days.forEach(d => d.spots.forEach(s => { if (s.required) state.selected.add(s.id); }));
+  // 선택 장소 기본값 (가라토 시장 등 추천 선택)
+  const defaults = ['karato','daishoin','miyajima_lunch'];
+  defaults.forEach(id => state.selected.add(id));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════════════════════ */
+function isActive(spot) {
+  return spot.required || state.selected.has(spot.id);
+}
+function activeSpots(day) {
+  return day.spots.filter(isActive);
+}
+function spotCost(spot) {
+  return (spot.costs[party()] ?? 0);
+}
+function fmt(n) { return n === 0 ? '무료' : `¥${n.toLocaleString()}`; }
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER HELPERS
+   ═══════════════════════════════════════════════════════════════ */
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER: HEADER
+   ═══════════════════════════════════════════════════════════════ */
+function renderHeader() {
+  const t = trip();
+  document.getElementById('pageTitle').textContent = t.title + ' 여행 플래너';
+  document.getElementById('hdrTitle').textContent  = t.title;
+  document.getElementById('hdrSub').textContent    = t.subtitle;
+  document.getElementById('hdrBadge').textContent  = t.dateRange;
+
+  const route = document.getElementById('hdrRoute');
+  route.innerHTML = '';
+  t.route.forEach((node, i) => {
+    route.appendChild(el('span', 'hdr-node', node));
+    if (i < t.route.length - 1) route.appendChild(el('span', 'hdr-arr', '→'));
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER: TOOLBAR
+   ═══════════════════════════════════════════════════════════════ */
+function renderToolbar() {
+  const t = trip();
+
+  /* trip selector */
+  const sel = document.getElementById('tripSel');
+  sel.innerHTML = '';
+  TRIPS.forEach((tr, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = tr.title;
+    if (i === state.tripIdx) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  sel.style.display = TRIPS.length > 1 ? '' : 'none';
+
+  /* party segment */
+  const seg = document.getElementById('partySeg');
+  seg.innerHTML = '';
+  t.partyOptions.forEach(p => {
+    const btn = el('button', party() === p.value ? 'on' : '', p.label);
+    btn.onclick = () => { state.party = p.value; renderAll(); };
+    seg.appendChild(btn);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER: DAYS
+   ═══════════════════════════════════════════════════════════════ */
+function renderDays() {
+  const col = document.getElementById('colDays');
+  col.innerHTML = '';
+  trip().days.forEach(day => {
+    const cnt = activeSpots(day).length;
+    const block = el('div', 'day-block');
+    block.innerHTML = `
+      <div class="day-hd">
+        <div class="day-dot" style="background:${day.color}"></div>
+        <div class="day-hd-info">
+          <div class="day-hd-title">${day.label}&ensp;·&ensp;${day.title}</div>
+          <div class="day-hd-sub">${day.date}${day.night ? '&ensp;→&ensp;' + day.night : ''}</div>
+        </div>
+        <div class="day-hd-cnt">${cnt}곳 선택</div>
+      </div>`;
+
+    const req = day.spots.filter(s => s.required);
+    const opt = day.spots.filter(s => !s.required);
+
+    if (req.length) {
+      block.appendChild(el('div', 'sec-lbl', '필수'));
+      const grid = el('div', 'spots-grid');
+      req.forEach(s => grid.appendChild(makeSpotCard(s, day)));
+      block.appendChild(grid);
+    }
+    if (opt.length) {
+      block.appendChild(el('div', 'sec-lbl', '선택'));
+      const grid = el('div', 'spots-grid');
+      opt.forEach(s => grid.appendChild(makeSpotCard(s, day)));
+      block.appendChild(grid);
+    }
+    col.appendChild(block);
+  });
+}
+
+function makeSpotCard(spot, day) {
+  const on = isActive(spot);
+  const card = el('div', `spot${on ? (spot.required ? ' req' : ' sel') : ''}`);
+
+  const cost = spotCost(spot);
+  const tags = spot.tags.map(t => `<span class="stag${spot.required ? ' req' : ''}">${t}</span>`).join('');
+
+  card.innerHTML = `
+    <div class="spot-chk">${on ? '✓' : ''}</div>
+    <div class="spot-name">${spot.name}</div>
+    <div class="spot-tags">${tags}</div>
+    <div class="spot-desc">${spot.desc}</div>
+    <div class="spot-meta"><span>${spot.duration}</span><span>${fmt(cost)} / ${party()}인</span></div>`;
+
+  if (!spot.required) {
+    card.onclick = () => {
+      if (state.selected.has(spot.id)) state.selected.delete(spot.id);
+      else state.selected.add(spot.id);
+      renderAll();
+    };
+  }
+  return card;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER: ITINERARY PANEL
+   ═══════════════════════════════════════════════════════════════ */
+function renderItin() {
+  const body = document.getElementById('itinBody');
+  body.innerHTML = '';
+  let count = 0;
+
+  trip().days.forEach(day => {
+    const spots = activeSpots(day);
+    if (!spots.length) return;
+    count += spots.length;
+
+    body.appendChild(el('div', 'itin-day-lbl',
+      `<span class="itin-dot" style="background:${day.color}"></span>${day.label} · ${day.title}`));
+
+    spots.forEach(s => {
+      const cost = spotCost(s);
+      const row  = el('div', 'itin-row');
+      row.innerHTML = `
+        <div class="itin-t">${s.itin.time}</div>
+        <div>
+          <div class="itin-n">${s.name}</div>
+          <div class="itin-sub">${s.itin.note}&ensp;·&ensp;${fmt(cost)}</div>
+        </div>`;
+      body.appendChild(row);
+    });
+  });
+
+  if (!count) body.innerHTML = '<div class="itin-empty">장소를 선택하면 일정이 나타납니다</div>';
+  document.getElementById('itinHead').textContent = `선택 일정 (${count}곳)`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER: COST PANEL
+   ═══════════════════════════════════════════════════════════════ */
+function renderCost() {
+  const body = document.getElementById('costBody');
+  body.innerHTML = '';
+  const t = trip();
+
+  let spotTotal = 0;
+  t.days.forEach(d => activeSpots(d).forEach(s => { spotTotal += spotCost(s); }));
+
+  let fixedTotal = 0;
+  const rows = [{ label: '입장료 합계', val: spotTotal }];
+  t.fixedCosts.forEach(fc => {
+    const val = fc.costs[party()] ?? 0;
+    fixedTotal += val;
+    rows.push({ label: fc.label, val });
+  });
+
+  const total = spotTotal + fixedTotal;
+  rows.forEach(r => {
+    body.appendChild(el('div', 'cost-row',
+      `<span>${r.label}</span><span>¥${r.val.toLocaleString()}</span>`));
+  });
+  body.appendChild(el('div', 'cost-total',
+    `<span>합계 (${party()}인)</span><span>¥${total.toLocaleString()}</span>`));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER: ALL
+   ═══════════════════════════════════════════════════════════════ */
+function renderAll() {
+  renderHeader();
+  renderToolbar();
+  renderDays();
+  renderItin();
+  renderCost();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PRINT
+   ═══════════════════════════════════════════════════════════════ */
+function openPrint() {
+  buildPrint();
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closePrint() {
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function buildPrint() {
+  const t   = trip();
+  let spotTotal = 0;
+  t.days.forEach(d => activeSpots(d).forEach(s => { spotTotal += spotCost(s); }));
+  const totalSpots = t.days.flatMap(d => activeSpots(d)).length;
+
+  document.getElementById('pTitle').textContent    = t.title + ' 여행 일정표';
+  document.getElementById('pSub').textContent      = t.subtitle;
+  document.getElementById('pMeta1').innerHTML      = `<b>📅</b>${t.dateRange}`;
+  document.getElementById('pMeta2').innerHTML      = `<b>👥</b>${party()}인 기준`;
+  document.getElementById('pMeta3').innerHTML      = `<b>📍</b>총 ${totalSpots}개 장소`;
+
+  const body = document.getElementById('pbody');
+  body.innerHTML = '';
+
+  t.days.forEach(day => {
+    const spots = activeSpots(day);
+    const dayDiv = el('div', 'pday');
+    dayDiv.innerHTML = `
+      <div class="pday-hd" style="border-color:${day.color}">
+        <div class="pday-dot" style="background:${day.color}"></div>
+        <div class="pday-label" style="color:${day.color}">${day.label}&ensp;·&ensp;${day.title}</div>
+        <div class="pday-date">${day.date}</div>
+      </div>`;
+
+    if (!spots.length) {
+      dayDiv.appendChild(el('div', '', '<span style="font-size:11px;color:#7e7165">선택된 장소 없음</span>'));
+    }
+
+    spots.forEach(s => {
+      const cost = spotCost(s);
+      const sd = el('div', 'pspot');
+      sd.innerHTML = `
+        <div class="pspot-time">${s.itin.time}</div>
+        <div class="pspot-body">
+          <div class="pspot-name">${s.name}${s.required ? '<span class="pspot-req">(필수)</span>' : ''}</div>
+          <div class="pspot-info">${s.itin.note}&ensp;·&ensp;${s.duration}</div>
+          <div class="pspot-tags">${s.tags.map(t => `<span class="ptag">${t}</span>`).join('')}</div>
+          <div class="pspot-cost">${cost === 0 ? '무료 입장' : '¥' + cost.toLocaleString() + ' / ' + party() + '인'}</div>
+        </div>`;
+      dayDiv.appendChild(sd);
+    });
+
+    if (day.night) dayDiv.appendChild(el('div', 'pnight', '🏨&ensp;' + day.night));
+    body.appendChild(dayDiv);
+  });
+
+  /* 비용 요약 */
+  const ct = el('div', 'pcost');
+  let html = `<div class="pcost-row"><span>입장료 합계</span><span>¥${spotTotal.toLocaleString()}</span></div>`;
+  let fixedTotal = 0;
+  t.fixedCosts.forEach(fc => {
+    const val = fc.costs[party()] ?? 0;
+    fixedTotal += val;
+    html += `<div class="pcost-row"><span>${fc.label}</span><span>¥${val.toLocaleString()}</span></div>`;
+  });
+  const total = spotTotal + fixedTotal;
+  html += `<div class="pcost-total"><span>총 예상 비용 (${party()}인)</span><span>¥${total.toLocaleString()}</span></div>`;
+  ct.innerHTML = html;
+  body.appendChild(ct);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACTIONS
+   ═══════════════════════════════════════════════════════════════ */
+function resetSelections() {
+  if (!confirm('선택을 초기화하고 기본값으로 되돌릴까요?')) return;
+  initTrip(state.tripIdx);
+  renderAll();
+}
+
+function switchTrip(idx) {
+  initTrip(parseInt(idx));
+  renderAll();
+}
+
+/* ── BOOT ── */
+initTrip(0);
+</script>
+
+<!-- ── MARKUP ───────────────────────────────────────────────── -->
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div>
+      <h1 id="hdrTitle"></h1>
+      <div class="hdr-sub" id="hdrSub"></div>
+    </div>
+    <div class="hdr-badge" id="hdrBadge"></div>
+  </div>
+  <div class="hdr-route" id="hdrRoute"></div>
+</div>
+
+<div class="toolbar">
+  <span class="tb-label">여행</span>
+  <select class="trip-sel" id="tripSel" onchange="switchTrip(this.value)"></select>
+
+  <div class="tb-sep"></div>
+
+  <span class="tb-label">인원</span>
+  <div class="tb-seg" id="partySeg"></div>
+
+  <div class="tb-right">
+    <button class="tb-btn" onclick="resetSelections()">↺ 초기화</button>
+    <button class="tb-btn primary" onclick="openPrint()">🖨️ 출력 / PDF</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="col-days" id="colDays"></div>
+  <div class="col-right">
+    <div class="panel">
+      <div class="panel-hd" id="itinHead">선택 일정</div>
+      <div class="panel-bd" id="itinBody"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd">예상 비용</div>
+      <div class="panel-bd" id="costBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT OVERLAY -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closePrint()">
+  <div class="psheet">
+    <div class="psh">
+      <h2 id="pTitle"></h2>
+      <div class="psh-sub" id="pSub"></div>
+      <div class="psh-meta">
+        <span id="pMeta1"></span>
+        <span id="pMeta2"></span>
+        <span id="pMeta3"></span>
+      </div>
+    </div>
+    <div class="pbody" id="pbody"></div>
+    <div class="pactions">
+      <div class="pnote">인쇄 창에서 <b>대상 → PDF로 저장</b>을 선택하면 PDF 파일로 저장됩니다.</div>
+      <button class="pbtn" onclick="closePrint()">닫기</button>
+      <button class="pbtn primary" onclick="window.print()">🖨️ 인쇄 / PDF 저장</button>
+    </div>
+  </div>
+</div>
+
+<script>renderAll();</script>
+</body>
+</html>
