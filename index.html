@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -172,12 +171,10 @@ button{font-family:inherit;cursor:pointer;}
   @page{margin:14mm;}
 }
 </style>
-
 </head>
 <body>
 
 <!-- ── PASSWORD ────────────────────────────────────────────── -->
-
 <div class="pw" id="pwScreen">
   <div class="pw-box">
     <h2>가족 여행 플래너</h2>
@@ -190,7 +187,6 @@ button{font-family:inherit;cursor:pointer;}
 </div>
 
 <!-- ── HEADER ──────────────────────────────────────────────── -->
-
 <div class="hdr">
   <div class="hdr-top">
     <div>
@@ -203,7 +199,6 @@ button{font-family:inherit;cursor:pointer;}
 </div>
 
 <!-- ── CONFIG BAR ──────────────────────────────────────────── -->
-
 <div class="cfg-bar">
   <span class="cfg-label">여행</span>
   <select class="trip-sel" id="tripSel" onchange="switchTrip(this.value)"></select>
@@ -226,11 +221,9 @@ button{font-family:inherit;cursor:pointer;}
 </div>
 
 <!-- ── FLIGHT BANNER ───────────────────────────────────────── -->
-
 <div class="flight-banner" id="flightBanner"></div>
 
 <!-- ── MAIN LAYOUT ─────────────────────────────────────────── -->
-
 <div class="layout">
   <div class="col-days" id="colDays"></div>
   <div class="col-right">
@@ -246,7 +239,6 @@ button{font-family:inherit;cursor:pointer;}
 </div>
 
 <!-- ── PRINT OVERLAY ───────────────────────────────────────── -->
-
 <div class="overlay" id="overlay" onclick="if(event.target===this)closePrint()">
   <div class="psheet">
     <div class="psh">
@@ -270,8 +262,16 @@ button{font-family:inherit;cursor:pointer;}
 /* ═══════════════════════════════════════════════════════════
    PASSWORD
 ═══════════════════════════════════════════════════════════ */
-function checkPw(){
-  if(document.getElementById('pwInput').value==='Trip'){
+// SHA-256 해시로 비밀번호 검증 — 코드에 원문 비밀번호가 노출되지 않습니다
+// 비밀번호를 바꾸려면: https://emn178.github.io/online-tools/sha256.html 에서
+// 새 비밀번호의 해시값을 구한 뒤 아래 PW_HASH 값을 교체하세요
+const PW_HASH = 'bd13d5a0906be48ef7377331f9af5ae9d641fd39ab9f16f8bcedbfa234beb162';
+
+async function checkPw(){
+  const val = document.getElementById('pwInput').value;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(val));
+  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(hash === PW_HASH){
     document.getElementById('pwScreen').style.display='none';
     sessionStorage.setItem('trip_auth','1');
   } else {
@@ -519,19 +519,42 @@ const TRIPS = [
       {
         label:'Day 4', title:'귀국',
         date:'7/19 (토)', color:'#888780', night:null,
+        // 귀국 공항(apt)에 따라 표시할 장소가 달라집니다
+        // airportVariant: 'FUK' = 후쿠오카, 'KKJ' = 기타큐슈, undefined = 공통
         spots:[
+          // ── 공통 ──
           { id:'karato_am', name:'가라토 항구 아침 산책', required:false, tags:['항구'],
             desc:'아침 간몬 해협 뷰. 구 아키타 상회 건물 외관 감상 가능.',
             duration:'30분', costs:{'2':0,'4':0,'5':0},
-            itin:{time:'08:30',note:'출발 전 숙소 주변 산책'} },
-          { id:'airport_fuk', name:'후쿠오카공항 이동', required:false, infoOnly:true, tags:['이동','후쿠오카'],
-            desc:'시모노세키역 → 신칸센 하카타 → 후쿠오카공항. 약 1시간 30분.',
+            itin:{time:'08:00',note:'출발 전 숙소 주변 산책'} },
+
+          // ── 후쿠오카 귀국 선택 시 ──
+          { id:'mojiko', name:'모지코 레트로 항구마을', required:false, airportVariant:'FUK', tags:['역사','항구'],
+            desc:'메이지~다이쇼 시대 서양식 건축 밀집 항구마을. 시모노세키에서 페리 5분. 바나나 명물.',
+            duration:'1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'09:00',note:'시모노세키 → 간몬 페리 5분 (편도 ¥400)'} },
+          { id:'dazaifu', name:'다자이후 텐만구', required:false, airportVariant:'FUK', tags:['신사','역사'],
+            desc:'학문의 신 스가와라노 미치자네를 모신 1,100년 역사의 신사. 후쿠오카 근교 필수 코스.',
+            duration:'1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'11:30',note:'하카타역 → 서일본철도 약 40분'} },
+          { id:'fuk_transfer', name:'후쿠오카공항 이동', required:false, infoOnly:true, airportVariant:'FUK', tags:['이동'],
+            desc:'시모노세키 → 신칸센 하카타 → 후쿠오카공항. 약 1시간 30분. 모지코 경유 시 하카타역으로 이동.',
             duration:'1.5시간', costs:{'2':3000,'4':6000,'5':7500},
-            itin:{time:'10:00',note:'후쿠오카공항 귀국 선택 시'} },
-          { id:'airport_kkj', name:'기타큐슈공항 이동', required:false, infoOnly:true, tags:['이동','기타큐슈'],
-            desc:'시모노세키역 → 기타큐슈공항 버스. 약 40분. 더 가까워서 편리.',
+            itin:{time:'14:30',note:'후쿠오카공항 → 귀국'} },
+
+          // ── 기타큐슈 귀국 선택 시 ──
+          { id:'chofu_kkj', name:'초후 모리 저택', required:false, airportVariant:'KKJ', tags:['사무라이','역사'],
+            desc:'기타큐슈 공항이 가까워 여유 있게 방문 가능. 메이지 시대 번주 저택. 사무라이 생활 공간.',
+            duration:'1시간', costs:{'2':1000,'4':2000,'5':2500},
+            itin:{time:'09:00',note:'시모노세키 시내에서 버스 20분'} },
+          { id:'chofu_g_kkj', name:'초후 정원', required:false, airportVariant:'KKJ', tags:['정원','역사'],
+            desc:'에도시대 번주 조성 전통 정원. 기타큐슈 공항이 가까워 오전 여유롭게 방문 가능.',
+            duration:'45분', costs:{'2':500,'4':1000,'5':1250},
+            itin:{time:'10:15',note:'모리 저택에서 도보 10분'} },
+          { id:'kkj_transfer', name:'기타큐슈공항 이동', required:false, infoOnly:true, airportVariant:'KKJ', tags:['이동'],
+            desc:'시모노세키역 → 기타큐슈공항 버스 직행. 약 40분. 가장 가까운 귀국 공항.',
             duration:'40분', costs:{'2':1500,'4':3000,'5':3750},
-            itin:{time:'10:00',note:'기타큐슈공항 귀국 선택 시'} },
+            itin:{time:'12:00',note:'기타큐슈공항 → 귀국'} },
         ]
       },
     ],
@@ -760,8 +783,14 @@ function resetDefaults(){
   defaults.forEach(id => S.selected.add(id));
 }
 
+// airportVariant 필터: 공항 선택에 따라 해당 variant 장소만 표시
+function isAirportMatch(s){
+  if(!s.airportVariant) return true;          // variant 없으면 항상 표시
+  return s.airportVariant === apt();           // 선택한 공항과 일치하면 표시
+}
 function isActive(s){ return s.required || S.selected.has(s.id); }
-function activeSpots(d){ return d.spots.filter(isActive); }
+function activeSpots(d){ return d.spots.filter(s => isAirportMatch(s) && isActive(s)); }
+function visibleSpots(d){ return d.spots.filter(isAirportMatch); }  // 카드 렌더링용
 function spotCost(s){ return s.costs[pty()] ?? 0; }
 function fmt(n){ return n===0 ? '무료' : `¥${n.toLocaleString()}`; }
 
@@ -855,15 +884,22 @@ function renderDays(){
     block.innerHTML=`<div class="day-hd">
       <div class="day-dot" style="background:${day.color}"></div>
       <div class="day-hd-info">
-        <div class="day-hd-title">${day.label}&ensp;·&ensp;${day.title}</div>
+        <div class="day-hd-title">${day.label}&ensp;·&ensp;${
+          // 귀국일(night===null)이고 히로시마 여행이면 공항명 반영
+          (day.night===null && T().airportOptions.length>1)
+            ? day.title + ' (' + (T().airportOptions.find(x=>x.value===apt())?.label||'') + '공항)'
+            : day.title
+        }</div>
         <div class="day-hd-sub">${day.date}${day.night?'&ensp;→&ensp;'+day.night:''}</div>
       </div>
       <div class="day-hd-cnt">${cnt}곳 선택</div>
     </div>`;
 
-    const req=day.spots.filter(s=>s.required);
-    const opt=day.spots.filter(s=>!s.required&&!s.infoOnly);
-    const info=day.spots.filter(s=>s.infoOnly);
+    // 귀국 공항 선택에 맞는 장소만 필터링
+    const visible=visibleSpots(day);
+    const req=visible.filter(s=>s.required);
+    const opt=visible.filter(s=>!s.required&&!s.infoOnly);
+    const info=visible.filter(s=>s.infoOnly);
 
     if(req.length){
       block.appendChild(el('div','sec-lbl','필수'));
@@ -1022,6 +1058,5 @@ function resetSelections(){ if(!confirm('초기화할까요?')) return; resetDef
 initTrip(0);
 renderAll();
 </script>
-
 </body>
 </html>
