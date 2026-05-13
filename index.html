@@ -742,6 +742,980 @@ const TRIPS = [
   },
 },
 
+
+/* ──────────────────────────────────────────────────────────
+   여행 3 : 히로시마 확장판 — 마츠야마 · 도고온천 · 마츠에 · 아다치
+────────────────────────────────────────────────────────── */
+{
+  id: 'sanyo-sanin',
+  title: '히로시마 확장 · 마츠야마 · 마츠에',
+  subtitle: '산요·산인 역사 루트 — 현존 천수각 & 온천',
+
+  durationOptions: [
+    { label: '3박4일', value: '4d' },
+    { label: '4박5일', value: '5d' },
+  ],
+
+  partyOptions: [
+    { label: '👫 2인', value: '2' },
+    { label: '👨‍👩‍👧‍👦 4인', value: '4' },
+    { label: '🏠 5인', value: '5' },
+  ],
+
+  departureOptions: [
+    { label: '✈ 인천', value: 'ICN', airport: '인천 → 히로시마공항' },
+    { label: '✈ 김포', value: 'GMP', airport: '김포 → 히로시마공항' },
+    { label: '✈ 김해', value: 'PUS', airport: '김해 → 마츠야마공항' },
+  ],
+
+  airportOptions: [
+    { label: '히로시마', value: 'HIJ', desc: '마츠에에서 히로시마공항으로 이동 후 귀국 (약 2시간)' },
+    { label: '마츠야마', value: 'MYJ', desc: '마츠야마공항 출발 (도고온천에서 25분)' },
+  ],
+
+  flightInfo(dep, airport) {
+    const go = {
+      ICN: '인천 → 히로시마공항 (약 1시간 50분)',
+      GMP: '김포 → 히로시마공항 (약 1시간 50분)',
+      PUS: '김해 → 마츠야마공항 (약 1시간)',
+    }[dep] || '';
+    const back = {
+      HIJ: '마츠에 → 히로시마공항 버스 약 2시간 → 귀국',
+      MYJ: '마츠야마공항 → 귀국 (도고온천에서 25분)',
+    }[airport] || '';
+    return { go, back };
+  },
+
+  fixedCosts: [
+    { label: '항공권 (왕복 추정)',           costs: {'2':400000,'4':800000,'5':1000000} },
+    { label: '히로시마→마츠야마 고속페리',   costs: {'2':14000,'4':28000,'5':35000} },
+    { label: '마츠야마→마츠에 버스·기차',   costs: {'2':8000,'4':16000,'5':20000} },
+    { label: '식비 추정',                   costs: {'2':36000,'4':72000,'5':90000} },
+    { label: '숙박 추정 (도고온천 료칸 포함)', costs: {'2':120000,'4':200000,'5':250000} },
+  ],
+
+  durationDays: {
+    '4d': [
+      {
+        label:'Day 1', title:'히로시마 시내',
+        date:'미정', color:'#378ADD', night:'히로시마 숙박',
+        spots:[
+          { id:'sa_hcastle', name:'히로시마성', required:true, tags:['성','역사'],
+            desc:'1589년 축성. 원폭 소실 후 재건. 내부 갑옷·검 체험 가능.',
+            duration:'1.5시간', costs:{'2':740,'4':1480,'5':1850},
+            itin:{time:'09:30',note:'히로시마역 → 버스 15분'} },
+          { id:'sa_peacedome', name:'원폭 돔 & 평화기념 박물관', required:true, tags:['역사','유네스코'],
+            desc:'유네스코 세계문화유산. 박물관 온라인 사전 예약 권장.',
+            duration:'2시간', costs:{'2':400,'4':800,'5':1000},
+            itin:{time:'13:00',note:'평화공원 도보 이동'} },
+          { id:'sa_miyajima', name:'미야지마 이쓰쿠시마 신사', required:false, tags:['신사','유네스코'],
+            desc:'바다 위 도리이. 히로시마역에서 전철+페리 35분.',
+            duration:'2시간', costs:{'2':600,'4':1200,'5':1500},
+            itin:{time:'16:00',note:'히로시마역 → 전철+페리 35분'} },
+        ]
+      },
+      {
+        label:'Day 2', title:'마츠야마',
+        date:'미정', color:'#C05050', night:'도고온천 료칸 숙박',
+        spots:[
+          { id:'sa_ferry', name:'히로시마→마츠야마 고속페리', required:true, infoOnly:true, tags:['이동'],
+            desc:'고속페리(슈퍼제트) 약 1시간 10분. 세토내해 경관 최고. 사전 예약 권장.',
+            duration:'1시간10분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'08:30',note:'히로시마항 출발'} },
+          { id:'sa_matsuyama_castle', name:'마츠야마성', required:true, tags:['성','역사'],
+            desc:'시코쿠 최대 규모 현존 천수각. 롯데이(로프웨이)로 올라가는 언덕 위 성. 전망 일품.',
+            duration:'2시간', costs:{'2':700,'4':1400,'5':1750},
+            itin:{time:'11:00',note:'마츠야마항 → 시내 전철 → 로프웨이'} },
+          { id:'sa_botchan', name:'봇짱 열차 & 시내 전차', required:false, tags:['역사','문화'],
+            desc:'나쓰메 소세키 소설 봇짱의 배경 도시 마츠야마. 메이지 시대 레트로 열차 운행.',
+            duration:'1시간', costs:{'2':1200,'4':2400,'5':3000},
+            itin:{time:'13:30',note:'시내 전차로 도고온천 이동'} },
+          { id:'sa_dogo', name:'도고온천 본관', required:true, tags:['온천','역사'],
+            desc:'일본 최고(最古) 온천 중 하나. 나쓰메 소세키·지브리 하울의 모티브. 2024년 보수 완료.',
+            duration:'2시간', costs:{'2':2600,'4':5200,'5':6500},
+            itin:{time:'15:30',note:'도고온천 본관 — 2층 다다미 쉼터 플랜 추천'} },
+        ]
+      },
+      {
+        label:'Day 3', title:'마츠에 & 아다치',
+        date:'미정', color:'#5A7FA0', night:'마츠에 숙박',
+        spots:[
+          { id:'sa_matsue_castle', name:'마츠에성 (黒城)', required:true, tags:['성','역사'],
+            desc:'일본 국보 5성 중 하나. 검은 외벽이 특징인 현존 천수각. 신지코 호수 조망.',
+            duration:'1.5시간', costs:{'2':1760,'4':3520,'5':4400},
+            itin:{time:'10:00',note:'마츠야마 → 마츠에 버스·기차 약 2시간'} },
+          { id:'sa_adachi', name:'아다치 미술관', required:true, tags:['정원','미술관'],
+            desc:'일본정원 랭킹 22년 연속 1위. 요코야마 다이칸 작품과 산수화 같은 정원이 압권.',
+            duration:'2시간', costs:{'2':4800,'4':9600,'5':12000},
+            itin:{time:'13:00',note:'마츠에역 → JR 야스기역 → 셔틀버스 20분'} },
+          { id:'sa_lafcadio', name:'고이즈미 야쿠모 기념관', required:false, tags:['역사','문화'],
+            desc:'괴담으로 유명한 라프카디오 헌의 이야기. 마츠에성 근처 사무라이 거리 산책.',
+            duration:'1시간', costs:{'2':700,'4':1400,'5':1750},
+            itin:{time:'11:30',note:'마츠에성에서 도보 5분'} },
+        ]
+      },
+      {
+        label:'Day 4', title:'귀국',
+        date:'미정', color:'#888780', night:null,
+        spots:[
+          { id:'sa_izumo', name:'이즈모 대사(出雲大社)', required:false, tags:['신사','역사'],
+            desc:'일본에서 가장 오래된 신사 중 하나. 인연의 신 오쿠니누시 제신. 거대 시메나와.',
+            duration:'1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'09:00',note:'마츠에역 → 이즈모시역 약 45분'} },
+          { id:'sa_airport', name:'공항 이동', required:true, infoOnly:true, tags:['이동'],
+            desc:'귀국 공항 선택에 따라 히로시마공항 또는 마츠야마공항으로 이동.',
+            duration:'1~2시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'12:00',note:'선택한 귀국 공항으로 이동'} },
+        ]
+      },
+    ],
+
+    '5d': [
+      {
+        label:'Day 1', title:'히로시마 시내',
+        date:'미정', color:'#378ADD', night:'히로시마 숙박',
+        spots:[
+          { id:'sa5_hcastle', name:'히로시마성', required:true, tags:['성','역사'],
+            desc:'1589년 축성. 원폭 소실 후 재건. 내부 갑옷·검 체험 가능.',
+            duration:'1.5시간', costs:{'2':740,'4':1480,'5':1850},
+            itin:{time:'09:30',note:'히로시마역 → 버스 15분'} },
+          { id:'sa5_peace', name:'원폭 돔 & 평화기념 박물관', required:true, tags:['역사','유네스코'],
+            desc:'유네스코 세계문화유산. 박물관 온라인 사전 예약 권장.',
+            duration:'2시간', costs:{'2':400,'4':800,'5':1000},
+            itin:{time:'13:00',note:'평화공원 도보 이동'} },
+        ]
+      },
+      {
+        label:'Day 2', title:'미야지마',
+        date:'미정', color:'#1D9E75', night:'히로시마 숙박',
+        spots:[
+          { id:'sa5_miyajima', name:'이쓰쿠시마 신사 & 오토리이', required:true, tags:['신사','유네스코'],
+            desc:'바다 위 도리이. 간조 때 걸어서 이동 가능. 조수 시간 사전 확인 필수.',
+            duration:'3시간', costs:{'2':600,'4':1200,'5':1500},
+            itin:{time:'09:00',note:'히로시마역 → 전철+페리 35분'} },
+          { id:'sa5_misen', name:'미센 산 등산', required:false, tags:['자연'],
+            desc:'해발 535m. 케이블카 또는 도보 등반. 세토내해 360도 전망.',
+            duration:'2~3시간', costs:{'2':3600,'4':7200,'5':9000},
+            itin:{time:'13:00',note:'왕복 케이블카 어른 1,800엔'} },
+        ]
+      },
+      {
+        label:'Day 3', title:'마츠야마 & 도고온천',
+        date:'미정', color:'#C05050', night:'도고온천 료칸 숙박',
+        spots:[
+          { id:'sa5_castle_m', name:'마츠야마성', required:true, tags:['성','역사'],
+            desc:'시코쿠 최대 현존 천수각. 로프웨이로 이동. 시내 전망 일품.',
+            duration:'2시간', costs:{'2':700,'4':1400,'5':1750},
+            itin:{time:'11:00',note:'고속페리 후 시내 이동'} },
+          { id:'sa5_dogo', name:'도고온천 본관', required:true, tags:['온천','역사'],
+            desc:'일본 최고(最古) 온천. 나쓰메 소세키·지브리 모티브. 2024년 보수 완료.',
+            duration:'2시간', costs:{'2':2600,'4':5200,'5':6500},
+            itin:{time:'15:30',note:'전차로 도고온천 이동'} },
+        ]
+      },
+      {
+        label:'Day 4', title:'마츠에 & 아다치',
+        date:'미정', color:'#5A7FA0', night:'마츠에 숙박',
+        spots:[
+          { id:'sa5_matsue', name:'마츠에성 (黒城)', required:true, tags:['성','역사'],
+            desc:'일본 국보 5성 중 하나. 검은 외벽의 현존 천수각. 신지코 호수 조망.',
+            duration:'1.5시간', costs:{'2':1760,'4':3520,'5':4400},
+            itin:{time:'10:00',note:'마츠야마 → 마츠에 약 2시간'} },
+          { id:'sa5_adachi', name:'아다치 미술관', required:true, tags:['정원','미술관'],
+            desc:'일본정원 22년 연속 1위. 산수화 같은 정원과 요코야마 다이칸 작품.',
+            duration:'2시간', costs:{'2':4800,'4':9600,'5':12000},
+            itin:{time:'13:00',note:'야스기역 → 셔틀버스 20분'} },
+          { id:'sa5_izumo', name:'이즈모 대사', required:false, tags:['신사','역사'],
+            desc:'일본 최고(最古) 신사 중 하나. 인연의 신. 거대 시메나와.',
+            duration:'1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'16:00',note:'마츠에역 → 이즈모시역 45분'} },
+        ]
+      },
+      {
+        label:'Day 5', title:'귀국',
+        date:'미정', color:'#888780', night:null,
+        spots:[
+          { id:'sa5_airport', name:'공항 이동', required:true, infoOnly:true, tags:['이동'],
+            desc:'히로시마공항 또는 마츠야마공항으로 이동 후 귀국.',
+            duration:'1~2시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'10:00',note:'선택한 귀국 공항으로 이동'} },
+        ]
+      },
+    ],
+  },
+},
+
+/* ──────────────────────────────────────────────────────────
+   여행 4 : 가나자와
+────────────────────────────────────────────────────────── */
+{
+  id: 'kanazawa',
+  title: '가나자와',
+  subtitle: '겐로쿠엔 · 가가 번 역사 · 게이샤 문화',
+
+  durationOptions: [
+    { label: '2박3일', value: '3d' },
+    { label: '3박4일', value: '4d' },
+  ],
+
+  partyOptions: [
+    { label: '👫 2인', value: '2' },
+    { label: '👨‍👩‍👧‍👦 4인', value: '4' },
+    { label: '🏠 5인', value: '5' },
+  ],
+
+  departureOptions: [
+    { label: '✈ 인천', value: 'ICN', airport: '인천 → 고마쓰공항 (가나자와 근교)' },
+    { label: '✈ 김포', value: 'GMP', airport: '김포 → 고마쓰공항' },
+    { label: '✈ 김해', value: 'PUS', airport: '김해 → 고마쓰공항' },
+  ],
+
+  airportOptions: [
+    { label: '고마쓰', value: 'KMQ', desc: '가나자와에서 버스 40분. 가장 가까운 공항.' },
+  ],
+
+  flightInfo(dep, airport) {
+    const go = {
+      ICN: '인천 → 고마쓰공항 (약 2시간)',
+      GMP: '김포 → 고마쓰공항 (약 2시간)',
+      PUS: '김해 → 고마쓰공항 (약 1시간 40분)',
+    }[dep] || '';
+    return { go, back: '고마쓰공항 → 귀국 (가나자와역 버스 40분)' };
+  },
+
+  fixedCosts: [
+    { label: '항공권 (왕복 추정)',   costs: {'2':360000,'4':720000,'5':900000} },
+    { label: '공항↔가나자와 버스',  costs: {'2':4400,'4':8800,'5':11000} },
+    { label: '시내 버스 패스',       costs: {'2':2400,'4':4800,'5':6000} },
+    { label: '식비 추정',           costs: {'2':33000,'4':66000,'5':82500} },
+    { label: '숙박 추정',           costs: {'2':55000,'4':90000,'5':112500} },
+  ],
+
+  durationDays: {
+    '3d': [
+      {
+        label:'Day 1', title:'겐로쿠엔 & 가나자와성',
+        date:'미정', color:'#2D7A4A', night:'가나자와 숙박',
+        spots:[
+          { id:'kz_kenroku', name:'겐로쿠엔 정원', required:true, tags:['정원','역사'],
+            desc:'일본 3대 정원. 에도시대 가가 번주 조성. 4계절 각기 다른 절경. 겨울 유키즈리 장관.',
+            duration:'1.5시간', costs:{'2':1200,'4':2400,'5':3000},
+            itin:{time:'09:00',note:'가나자와역 → 루프버스 20분'} },
+          { id:'kz_castle', name:'가나자와성 공원', required:true, tags:['성','역사'],
+            desc:'마에다 가문의 거성. 재건된 히시 야구라·菱橋 문루 인상적. 겐로쿠엔과 도보 연결.',
+            duration:'1시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'10:45',note:'겐로쿠엔과 도보 연결'} },
+          { id:'kz_gyokusen', name:'교쿠센인마루 정원', required:false, tags:['정원','역사'],
+            desc:'가나자와성 내 비교적 덜 알려진 숨겨진 정원. 연못과 성벽의 조화.',
+            duration:'45분', costs:{'2':700,'4':1400,'5':1750},
+            itin:{time:'12:00',note:'가나자와성 공원 내'} },
+          { id:'kz_higashi', name:'히가시 차야 거리', required:true, tags:['역사','문화'],
+            desc:'에도시대 게이샤 거리. 격자 창문의 목조 건물. 금박 아이스크림·말차 카페 즐비.',
+            duration:'1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'14:00',note:'루프버스 이동'} },
+          { id:'kz_kenroku_night', name:'겐로쿠엔 야간 라이트업', required:false, tags:['정원'],
+            desc:'계절별 야간 특별 개방. 조명에 물든 정원이 낮과는 전혀 다른 분위기.',
+            duration:'1시간', costs:{'2':1200,'4':2400,'5':3000},
+            itin:{time:'18:00',note:'계절별 개방 여부 사전 확인 필수'} },
+        ]
+      },
+      {
+        label:'Day 2', title:'시라카와고 당일치기',
+        date:'미정', color:'#7A5A2A', night:'가나자와 숙박',
+        spots:[
+          { id:'kz_shirakawa', name:'시라카와고 합장마을', required:true, tags:['역사','유네스코'],
+            desc:'유네스코 세계문화유산. 에도시대 경사 지붕 갓쇼즈쿠리 가옥. 겨울 설경이 압권.',
+            duration:'3시간', costs:{'2':600,'4':1200,'5':1500},
+            itin:{time:'09:00',note:'가나자와역 → 버스 약 1시간 20분 (사전 예약 권장)'} },
+          { id:'kz_nagamachi', name:'나가마치 사무라이 거리', required:false, tags:['역사','문화'],
+            desc:'에도시대 마에다 번 사무라이 저택 보존 지구. 흙벽·좁은 골목 산책.',
+            duration:'1시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'15:30',note:'시라카와고 귀환 후 가나자와 시내'} },
+          { id:'kz_omicho', name:'오미초 시장', required:false, tags:['시장','식도락'],
+            desc:'가나자와 최대 재래시장. 해산물·가나자와 명물 가니(게) 구매 가능.',
+            duration:'1시간', costs:{'2':3000,'4':6000,'5':7500},
+            itin:{time:'17:00',note:'시내 도보 이동'} },
+        ]
+      },
+      {
+        label:'Day 3', title:'귀국',
+        date:'미정', color:'#888780', night:null,
+        spots:[
+          { id:'kz_21century', name:'21세기 미술관', required:false, tags:['문화','박물관'],
+            desc:'세계적 건축가 SANAA 설계. 원형 유리 건물. 레안드로 에를리히 수영장 작품 유명.',
+            duration:'1.5시간', costs:{'2':1600,'4':3200,'5':4000},
+            itin:{time:'09:00',note:'겐로쿠엔 맞은편 도보 5분'} },
+          { id:'kz_airport', name:'고마쓰공항 이동', required:true, infoOnly:true, tags:['이동'],
+            desc:'가나자와역 → 고마쓰공항 버스 약 40분.',
+            duration:'40분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'12:00',note:'출발 3시간 전 공항 도착 권장'} },
+        ]
+      },
+    ],
+
+    '4d': [
+      {
+        label:'Day 1', title:'겐로쿠엔 & 가나자와성',
+        date:'미정', color:'#2D7A4A', night:'가나자와 숙박',
+        spots:[
+          { id:'kz4_kenroku', name:'겐로쿠엔 정원', required:true, tags:['정원','역사'],
+            desc:'일본 3대 정원. 에도시대 가가 번주 조성. 겨울 유키즈리 장관.',
+            duration:'1.5시간', costs:{'2':1200,'4':2400,'5':3000},
+            itin:{time:'09:00',note:'가나자와역 → 루프버스 20분'} },
+          { id:'kz4_castle', name:'가나자와성 공원', required:true, tags:['성','역사'],
+            desc:'마에다 가문의 거성. 재건된 히시 야구라 인상적. 겐로쿠엔과 도보 연결.',
+            duration:'1시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'10:45',note:'겐로쿠엔에서 도보 연결'} },
+          { id:'kz4_higashi', name:'히가시 차야 거리', required:true, tags:['역사','문화'],
+            desc:'에도시대 게이샤 거리. 격자 창문 목조 건물. 금박 아이스크림 명물.',
+            duration:'1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'14:00',note:'루프버스 이동'} },
+        ]
+      },
+      {
+        label:'Day 2', title:'시라카와고 당일치기',
+        date:'미정', color:'#7A5A2A', night:'가나자와 숙박',
+        spots:[
+          { id:'kz4_shirakawa', name:'시라카와고 합장마을', required:true, tags:['역사','유네스코'],
+            desc:'유네스코 세계문화유산. 갓쇼즈쿠리 전통 가옥. 겨울 설경이 압권.',
+            duration:'3시간', costs:{'2':600,'4':1200,'5':1500},
+            itin:{time:'09:00',note:'가나자와역 → 버스 약 1시간 20분'} },
+          { id:'kz4_gokayama', name:'고카야마 합장마을', required:false, tags:['역사','유네스코'],
+            desc:'시라카와고 인근 유네스코 유산. 시라카와고보다 조용하고 덜 붐빔.',
+            duration:'1시간', costs:{'2':300,'4':600,'5':750},
+            itin:{time:'13:00',note:'시라카와고에서 버스 30분'} },
+        ]
+      },
+      {
+        label:'Day 3', title:'가나자와 문화',
+        date:'미정', color:'#5A3FAA', night:'가나자와 숙박',
+        spots:[
+          { id:'kz4_21c', name:'21세기 미술관', required:false, tags:['문화','박물관'],
+            desc:'SANAA 설계 원형 유리 미술관. 레안드로 에를리히 수영장 작품.',
+            duration:'1.5시간', costs:{'2':1600,'4':3200,'5':4000},
+            itin:{time:'09:30',note:'겐로쿠엔 맞은편 도보 5분'} },
+          { id:'kz4_nagamachi', name:'나가마치 사무라이 거리', required:false, tags:['역사','문화'],
+            desc:'마에다 번 사무라이 저택 보존 지구. 부케야시키 노무라 저택 내부 공개.',
+            duration:'1.5시간', costs:{'2':1100,'4':2200,'5':2750},
+            itin:{time:'11:30',note:'시내 도보 이동'} },
+          { id:'kz4_omicho', name:'오미초 시장', required:false, tags:['시장','식도락'],
+            desc:'가나자와 최대 재래시장. 해산물·가나자와 명물 가니(게) 구매 가능.',
+            duration:'1시간', costs:{'2':3000,'4':6000,'5':7500},
+            itin:{time:'13:30',note:'시내 도보 이동'} },
+          { id:'kz4_kazuemachi', name:'가즈에마치 차야 거리', required:false, tags:['역사','문화'],
+            desc:'히가시보다 조용한 게이샤 거리. 아사노가와 강변 석양 뷰 포토스팟.',
+            duration:'45분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'16:00',note:'도보 이동'} },
+        ]
+      },
+      {
+        label:'Day 4', title:'귀국',
+        date:'미정', color:'#888780', night:null,
+        spots:[
+          { id:'kz4_airport', name:'고마쓰공항 이동', required:true, infoOnly:true, tags:['이동'],
+            desc:'가나자와역 → 고마쓰공항 버스 약 40분.',
+            duration:'40분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'10:00',note:'출발 3시간 전 공항 도착 권장'} },
+        ]
+      },
+    ],
+  },
+},
+
+/* ──────────────────────────────────────────────────────────
+   여행 5 : 니가타 (겨울)
+────────────────────────────────────────────────────────── */
+{
+  id: 'niigata-winter',
+  title: '니가타 (겨울)',
+  subtitle: '일본해 설경 · 스키 · 사케 문화',
+
+  durationOptions: [
+    { label: '2박3일', value: '3d' },
+    { label: '3박4일', value: '4d' },
+  ],
+
+  partyOptions: [
+    { label: '👫 2인', value: '2' },
+    { label: '👨‍👩‍👧‍👦 4인', value: '4' },
+    { label: '🏠 5인', value: '5' },
+  ],
+
+  departureOptions: [
+    { label: '✈ 인천', value: 'ICN', airport: '인천 → 니가타공항' },
+    { label: '✈ 김포', value: 'GMP', airport: '김포 → 니가타공항' },
+  ],
+
+  airportOptions: [
+    { label: '니가타', value: 'KIJ', desc: '니가타 시내에서 버스 25분' },
+  ],
+
+  flightInfo(dep, airport) {
+    const go = {
+      ICN: '인천 → 니가타공항 (약 1시간 40분)',
+      GMP: '김포 → 니가타공항 (약 1시간 40분)',
+    }[dep] || '';
+    return { go, back: '니가타공항 → 귀국' };
+  },
+
+  fixedCosts: [
+    { label: '항공권 (왕복 추정)',   costs: {'2':300000,'4':600000,'5':750000} },
+    { label: '공항↔시내 버스',      costs: {'2':1500,'4':3000,'5':3750} },
+    { label: '스키장 리프트권 추정', costs: {'2':12000,'4':24000,'5':30000} },
+    { label: '식비 추정',           costs: {'2':28000,'4':56000,'5':70000} },
+    { label: '숙박 추정',           costs: {'2':50000,'4':90000,'5':112500} },
+  ],
+
+  durationDays: {
+    '3d': [
+      {
+        label:'Day 1', title:'니가타 시내',
+        date:'미정 (겨울)', color:'#4A7FA0', night:'니가타 숙박',
+        spots:[
+          { id:'ng_sake', name:'폰슈칸 사케 시음관', required:true, tags:['문화','식도락'],
+            desc:'니가타 93개 양조장 사케 한자리에. 500엔으로 5종 시음. 니가타역 직결.',
+            duration:'1시간', costs:{'2':1000,'4':2000,'5':2500},
+            itin:{time:'10:00',note:'니가타역 CoCoLo 내'} },
+          { id:'ng_furumachi', name:'후루마치 긴자 & 사케 거리', required:false, tags:['문화','역사'],
+            desc:'니가타 구시가지 상점가. 에도시대 번화가 흔적. 사케 관련 가게 밀집.',
+            duration:'1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'13:00',note:'시내 버스 이동'} },
+          { id:'ng_nigatehama', name:'니가타하마 & 일본해 설경', required:false, tags:['자연','겨울'],
+            desc:'일본해 파도와 설경. 겨울 니가타만의 회색빛 바다와 눈 풍경.',
+            duration:'1시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'15:00',note:'버스 이동'} },
+          { id:'ng_local_food', name:'니가타 향토 저녁', required:false, tags:['식도락'],
+            desc:'일본해 게·연어·니가타 고시히카리 쌀. 타레카츠동·노포 이탈리안도 명물.',
+            duration:'1시간', costs:{'2':6000,'4':12000,'5':15000},
+            itin:{time:'18:00',note:'시내 음식점'} },
+        ]
+      },
+      {
+        label:'Day 2', title:'묘코·에치고 스키',
+        date:'미정 (겨울)', color:'#6AA0C8', night:'니가타 숙박',
+        spots:[
+          { id:'ng_ski', name:'묘코 고원 스키장', required:false, tags:['스키','겨울'],
+            desc:'니가타 근교 파우더 스노우 명소. 묘코산 조망. 초보~상급자 코스 다양.',
+            duration:'종일', costs:{'2':16000,'4':32000,'5':40000},
+            itin:{time:'08:00',note:'니가타역 → 묘코고원역 신칸센+특급 약 1시간'} },
+          { id:'ng_naeba', name:'나에바 스키장', required:false, tags:['스키','겨울'],
+            desc:'후지록 페스티벌 개최지. 대규모 스키장. 일본 최대급 곤돌라 운행.',
+            duration:'종일', costs:{'2':16000,'4':32000,'5':40000},
+            itin:{time:'08:00',note:'니가타역 → 에치고유자와역 신칸센 25분'} },
+        ]
+      },
+      {
+        label:'Day 3', title:'귀국',
+        date:'미정 (겨울)', color:'#888780', night:null,
+        spots:[
+          { id:'ng_airport', name:'니가타공항 이동', required:true, infoOnly:true, tags:['이동'],
+            desc:'니가타역 → 니가타공항 버스 약 25분.',
+            duration:'25분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'10:00',note:'출발 3시간 전 공항 도착 권장'} },
+        ]
+      },
+    ],
+
+    '4d': [
+      {
+        label:'Day 1', title:'니가타 시내',
+        date:'미정 (겨울)', color:'#4A7FA0', night:'니가타 숙박',
+        spots:[
+          { id:'ng4_sake', name:'폰슈칸 사케 시음관', required:true, tags:['문화','식도락'],
+            desc:'니가타 93개 양조장 사케 한자리에. 500엔으로 5종 시음.',
+            duration:'1시간', costs:{'2':1000,'4':2000,'5':2500},
+            itin:{time:'10:00',note:'니가타역 CoCoLo 내'} },
+          { id:'ng4_furumachi', name:'후루마치 긴자 & 역사 거리', required:false, tags:['문화','역사'],
+            desc:'에도시대 번화가. 사케 가게·노포 음식점 밀집.',
+            duration:'1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'13:00',note:'시내 버스 이동'} },
+          { id:'ng4_food', name:'니가타 향토 저녁', required:false, tags:['식도락'],
+            desc:'연어·게·코시히카리 쌀. 타레카츠동 명물.',
+            duration:'1시간', costs:{'2':6000,'4':12000,'5':15000},
+            itin:{time:'18:00',note:'시내 음식점'} },
+        ]
+      },
+      {
+        label:'Day 2', title:'스키 Day 1',
+        date:'미정 (겨울)', color:'#6AA0C8', night:'유자와 스키장 숙박',
+        spots:[
+          { id:'ng4_ski1', name:'에치고유자와 스키장', required:false, tags:['스키','겨울'],
+            desc:'니가타 대표 스키 리조트. 신칸센으로 25분. 초보자 코스 많아 가족 여행 적합.',
+            duration:'종일', costs:{'2':16000,'4':32000,'5':40000},
+            itin:{time:'08:00',note:'니가타역 → 에치고유자와역 신칸센 25분'} },
+          { id:'ng4_onsen_ski', name:'유자와 온천', required:false, tags:['온천','겨울'],
+            desc:'스키 후 온천. 유자와 료칸 밀집 지역. 설경 속 노천 온천.',
+            duration:'1.5시간', costs:{'2':1000,'4':2000,'5':2500},
+            itin:{time:'16:00',note:'숙소 또는 공중 온천'} },
+        ]
+      },
+      {
+        label:'Day 3', title:'스키 Day 2 / 나에바',
+        date:'미정 (겨울)', color:'#3A6A90', night:'니가타 숙박',
+        spots:[
+          { id:'ng4_naeba', name:'나에바 스키장', required:false, tags:['스키','겨울'],
+            desc:'일본 최대급 스키장. 다양한 코스. 상급자 추천.',
+            duration:'종일', costs:{'2':16000,'4':32000,'5':40000},
+            itin:{time:'08:00',note:'에치고유자와에서 버스 이동'} },
+        ]
+      },
+      {
+        label:'Day 4', title:'귀국',
+        date:'미정 (겨울)', color:'#888780', night:null,
+        spots:[
+          { id:'ng4_airport', name:'니가타공항 이동', required:true, infoOnly:true, tags:['이동'],
+            desc:'니가타역 → 니가타공항 버스 약 25분.',
+            duration:'25분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'10:00',note:'출발 3시간 전 공항 도착 권장'} },
+        ]
+      },
+    ],
+  },
+},
+
+/* ──────────────────────────────────────────────────────────
+   여행 6 : 아오모리 · 하코다테 (준비 중)
+────────────────────────────────────────────────────────── */
+{
+  id: 'aomori-hakodate',
+  title: '아오모리 · 하코다테',
+  subtitle: '도호쿠 역사 루트 — 현존 천수각 · 세계 3대 야경 · 해산물',
+
+  durationOptions: [
+    { label: '3박4일', value: '4d' },
+    { label: '4박5일', value: '5d' },
+  ],
+
+  partyOptions: [
+    { label: '👫 2인', value: '2' },
+    { label: '👨‍👩‍👧‍👦 4인', value: '4' },
+    { label: '🏠 5인', value: '5' },
+  ],
+
+  departureOptions: [
+    { label: '✈ 인천', value: 'ICN', airport: '인천 → 아오모리공항 (약 2시간)' },
+    { label: '✈ 김포', value: 'GMP', airport: '김포 → 아오모리공항 (약 2시간)' },
+    { label: '✈ 김해', value: 'PUS', airport: '김해 → 아오모리공항 (경유, 약 3시간)' },
+  ],
+
+  airportOptions: [
+    { label: '하코다테', value: 'HKD', desc: '하코다테공항 → 귀국 (시내에서 차 20분)' },
+    { label: '아오모리', value: 'AOJ', desc: '아오모리공항 → 귀국 (시내에서 버스 35분)' },
+  ],
+
+  flightInfo(dep, airport) {
+    const go = {
+      ICN: '인천 → 아오모리공항 (약 2시간)',
+      GMP: '김포 → 아오모리공항 (약 2시간)',
+      PUS: '김해 → 아오모리공항 (경유, 약 3시간)',
+    }[dep] || '';
+    const back = {
+      HKD: '하코다테공항 → 귀국 (시내에서 20분)',
+      AOJ: '아오모리공항 → 귀국 (아오모리역 버스 35분)',
+    }[airport] || '';
+    return { go, back };
+  },
+
+  fixedCosts: [
+    { label: '항공권 (왕복 추정)',          costs: {'2':500000,'4':1000000,'5':1250000} },
+    { label: '아오모리→하코다테 신칸센',    costs: {'2':10000,'4':20000,'5':25000} },
+    { label: '시내 교통 (전차·버스)',        costs: {'2':8000,'4':16000,'5':20000} },
+    { label: '식비 추정',                  costs: {'2':38000,'4':76000,'5':95000} },
+    { label: '숙박 추정 (3박)',             costs: {'2':65000,'4':110000,'5':137500} },
+  ],
+
+  durationDays: {
+    '4d': [
+      {
+        label:'Day 1', title:'아오모리 & 히로사키',
+        date:'미정', color:'#3A6BA0', night:'아오모리 숙박',
+        spots:[
+          { id:'ah_hirosaki', name:'히로사키성 & 히로사키 공원', required:true, tags:['성','역사'],
+            desc:'현존 천수각 12성 중 하나. 1611년 축성. 봄 벚꽃(2,600그루)·겨울 설경 절경. 사과 명산지.',
+            duration:'2~3시간', costs:{'2':820,'4':1640,'5':2050},
+            itin:{time:'10:00',note:'아오모리역 → 히로사키역 JR 35분'} },
+          { id:'ah_nebuta', name:'네부타 박물관 와·라쎄', required:true, tags:['문화','역사'],
+            desc:'일본 3대 마쓰리 아오모리 네부타의 대형 등불 상시 전시. 박력있는 대형 등불 7~8개.',
+            duration:'1시간', costs:{'2':1600,'4':3200,'5':4000},
+            itin:{time:'15:00',note:'아오모리역 도보 5분'} },
+          { id:'ah_afactory', name:'A-FACTORY & 항구 산책', required:false, tags:['식도락','쇼핑'],
+            desc:'아오모리 특산품·사과 사이다 양조장. 아오모리항 해변 산책로 인접. 석양 뷰 포인트.',
+            duration:'1시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'16:30',note:'아오모리역 도보 3분'} },
+          { id:'ah_seafood', name:'아오모리 해산물 저녁', required:false, tags:['식도락'],
+            desc:'참치·성게·연어알 해산물 명산지. 어시장 식당 또는 후루사토 이치바 추천.',
+            duration:'1.5시간', costs:{'2':8000,'4':16000,'5':20000},
+            itin:{time:'18:00',note:'아오모리 항구 주변'} },
+        ]
+      },
+      {
+        label:'Day 2', title:'하코다테 이동 & 야경',
+        date:'미정', color:'#5A3090', night:'하코다테 숙박',
+        spots:[
+          { id:'ah_shinkansen', name:'신칸센 하야부사 이동', required:true, infoOnly:true, tags:['이동'],
+            desc:'아오모리역 → 신아오모리역 → 신하코다테호쿠토역 신칸센 약 55분. JR패스 추천.',
+            duration:'1시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'09:00',note:'신아오모리역 출발'} },
+          { id:'ah_goryokaku', name:'고료카쿠 요새 & 타워', required:true, tags:['역사','요새'],
+            desc:'1864년 축조 일본 최초 서양식 별 모양 요새. 보신전쟁 최후 격전지. 타워(¥1,000)에서 별 모양 부감 뷰 압권.',
+            duration:'2시간', costs:{'2':2000,'4':4000,'5':5000},
+            itin:{time:'11:30',note:'하코다테역 → 시내 전차 15분'} },
+          { id:'ah_motomachi', name:'모토마치 서양식 건물 거리', required:false, tags:['역사','문화'],
+            desc:'메이지 개항 도시의 상징. 하리스토스 성당·구영국영사관·구공회당 등 서양식 건물 밀집 언덕. 무료.',
+            duration:'1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'14:00',note:'고료카쿠에서 시내 전차 이동'} },
+          { id:'ah_hakodate_night', name:'하코다테산 야경', required:true, tags:['야경'],
+            desc:'세계 3대 야경 중 하나. 양쪽 바다에 둘러싸인 도시 야경. 로프웨이(¥1,500) 또는 도보 40분.',
+            duration:'1.5시간', costs:{'2':3000,'4':6000,'5':7500},
+            itin:{time:'19:00',note:'일몰 후 30분 방문 추천. 로프웨이 막차 22시'} },
+        ]
+      },
+      {
+        label:'Day 3', title:'하코다테 아침시장 & 근교',
+        date:'미정', color:'#2D7A5A', night:'하코다테 숙박',
+        spots:[
+          { id:'ah_asaichi', name:'하코다테 아침시장', required:true, tags:['시장','식도락'],
+            desc:'새벽 5시~낮 12시. 이카(오징어) 직접 낚기 체험. 성게·게·연어알 카이센동. 하코다테역 도보 5분.',
+            duration:'1.5시간', costs:{'2':5000,'4':10000,'5':12500},
+            itin:{time:'06:00',note:'하코다테역 도보 5분'} },
+          { id:'ah_onuma', name:'오누마 국정공원', required:false, tags:['자연','역사'],
+            desc:'고마가타케 화산과 호수·섬이 어우러진 국정공원. 유람선 또는 자전거 대여. 하코다테역에서 JR 25분.',
+            duration:'2시간', costs:{'2':1400,'4':2800,'5':3500},
+            itin:{time:'09:00',note:'하코다테역 → JR 오누마코엔역 25분'} },
+          { id:'ah_trappist', name:'트라피스트 수도원', required:false, tags:['역사','문화'],
+            desc:'1896년 설립 일본 최초 남자 수도원. 아름다운 삼나무 가로수. 버터·쿠키 명물 판매.',
+            duration:'1시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'11:30',note:'하코다테역 버스 40분'} },
+          { id:'ah_yunokawa', name:'유노카와 온천', required:false, tags:['온천'],
+            desc:'하코다테 시내 온천 거리. 족욕 무료 공중 온천 있음. 료칸 당일치기 온천 가능.',
+            duration:'2시간', costs:{'2':1200,'4':2400,'5':3000},
+            itin:{time:'15:00',note:'시내 전차 유노카와역 종점'} },
+        ]
+      },
+      {
+        label:'Day 4', title:'귀국',
+        date:'미정', color:'#888780', night:null,
+        spots:[
+          { id:'ah_kanemori', name:'가네모리 붉은 벽돌 창고', required:false, tags:['역사','쇼핑'],
+            desc:'메이지 시대 창고를 리노베이션한 복합 쇼핑몰. 항구 뷰와 레트로 분위기. 기념품 구매 최적.',
+            duration:'1시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'09:00',note:'하코다테역 도보 15분'} },
+          { id:'ah_airport_hkd', name:'하코다테공항 이동', required:false, infoOnly:true, airportVariant:'HKD', tags:['이동'],
+            desc:'하코다테역 → 공항 버스 약 20분. 귀국 3시간 전 도착 권장.',
+            duration:'20분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'11:00',note:'하코다테공항 → 귀국'} },
+          { id:'ah_airport_aoj', name:'아오모리공항 이동', required:false, infoOnly:true, airportVariant:'AOJ', tags:['이동'],
+            desc:'하코다테역 → 신칸센 → 신아오모리 → 아오모리공항 버스. 약 2시간.',
+            duration:'2시간', costs:{'2':10000,'4':20000,'5':25000},
+            itin:{time:'09:00',note:'아오모리공항 → 귀국'} },
+        ]
+      },
+    ],
+
+    '5d': [
+      {
+        label:'Day 1', title:'아오모리 도착 & 네부타',
+        date:'미정', color:'#3A6BA0', night:'아오모리 숙박',
+        spots:[
+          { id:'ah5_nebuta', name:'네부타 박물관 와·라쎄', required:true, tags:['문화','역사'],
+            desc:'일본 3대 마쓰리 아오모리 네부타 대형 등불 상시 전시. 박력있는 대형 등불.',
+            duration:'1시간', costs:{'2':1600,'4':3200,'5':4000},
+            itin:{time:'14:00',note:'아오모리역 도보 5분'} },
+          { id:'ah5_afactory', name:'A-FACTORY & 항구 산책', required:false, tags:['식도락'],
+            desc:'아오모리 특산품·사과 사이다 양조장. 항구 산책로 석양 뷰.',
+            duration:'1시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'16:00',note:'아오모리역 도보 3분'} },
+          { id:'ah5_seafood1', name:'아오모리 해산물 저녁', required:false, tags:['식도락'],
+            desc:'참치·성게·연어알. 후루사토 이치바 또는 어시장 인근 식당.',
+            duration:'1.5시간', costs:{'2':8000,'4':16000,'5':20000},
+            itin:{time:'18:00',note:'아오모리 항구 주변'} },
+        ]
+      },
+      {
+        label:'Day 2', title:'히로사키 & 핫코다산',
+        date:'미정', color:'#2D5A90', night:'아오모리 숙박',
+        spots:[
+          { id:'ah5_hirosaki', name:'히로사키성 & 히로사키 공원', required:true, tags:['성','역사'],
+            desc:'현존 천수각 12성 중 하나. 1611년 축성. 봄 벚꽃 2,600그루·겨울 설경 절경.',
+            duration:'2~3시간', costs:{'2':820,'4':1640,'5':2050},
+            itin:{time:'09:00',note:'아오모리역 → 히로사키역 JR 35분'} },
+          { id:'ah5_hakkoda', name:'핫코다산 케이블카', required:false, tags:['자연','겨울'],
+            desc:'해발 1,324m. 360도 파노라마. 겨울 수빙(나무얼음) 장관. 케이블카 8분.',
+            duration:'2시간', costs:{'2':2400,'4':4800,'5':6000},
+            itin:{time:'14:00',note:'아오모리역 버스 50분'} },
+        ]
+      },
+      {
+        label:'Day 3', title:'하코다테 이동 & 야경',
+        date:'미정', color:'#5A3090', night:'하코다테 숙박',
+        spots:[
+          { id:'ah5_goryokaku', name:'고료카쿠 요새 & 타워', required:true, tags:['역사','요새'],
+            desc:'1864년 축조 서양식 별 모양 요새. 보신전쟁 최후 격전지. 타워에서 부감 뷰.',
+            duration:'2시간', costs:{'2':2000,'4':4000,'5':5000},
+            itin:{time:'11:30',note:'신하코다테호쿠토역 → 시내 전차'} },
+          { id:'ah5_motomachi', name:'모토마치 서양식 건물 거리', required:false, tags:['역사','문화'],
+            desc:'개항 도시의 상징. 하리스토스 성당·구영국영사관 등 서양식 건물 밀집 언덕.',
+            duration:'1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'14:00',note:'시내 전차 이동'} },
+          { id:'ah5_night', name:'하코다테산 야경', required:true, tags:['야경'],
+            desc:'세계 3대 야경. 양쪽 바다에 둘러싸인 도시 야경. 로프웨이 왕복 ¥1,500.',
+            duration:'1.5시간', costs:{'2':3000,'4':6000,'5':7500},
+            itin:{time:'19:00',note:'일몰 후 30분 방문 추천'} },
+        ]
+      },
+      {
+        label:'Day 4', title:'하코다테 아침시장 & 오누마',
+        date:'미정', color:'#2D7A5A', night:'하코다테 숙박',
+        spots:[
+          { id:'ah5_asaichi', name:'하코다테 아침시장', required:true, tags:['시장','식도락'],
+            desc:'새벽 5시~낮 12시. 이카(오징어) 직접 낚기 체험. 성게·게 카이센동. 하코다테역 도보 5분.',
+            duration:'1.5시간', costs:{'2':5000,'4':10000,'5':12500},
+            itin:{time:'06:00',note:'하코다테역 도보 5분'} },
+          { id:'ah5_onuma', name:'오누마 국정공원', required:false, tags:['자연'],
+            desc:'고마가타케 화산·호수·섬 국정공원. 유람선 또는 자전거 대여.',
+            duration:'2시간', costs:{'2':1400,'4':2800,'5':3500},
+            itin:{time:'09:00',note:'하코다테역 → JR 25분'} },
+          { id:'ah5_yunokawa', name:'유노카와 온천', required:false, tags:['온천'],
+            desc:'하코다테 시내 온천 거리. 족욕 무료 공중 온천. 료칸 당일치기 가능.',
+            duration:'2시간', costs:{'2':1200,'4':2400,'5':3000},
+            itin:{time:'14:00',note:'시내 전차 종점'} },
+        ]
+      },
+      {
+        label:'Day 5', title:'귀국',
+        date:'미정', color:'#888780', night:null,
+        spots:[
+          { id:'ah5_kanemori', name:'가네모리 붉은 벽돌 창고', required:false, tags:['역사','쇼핑'],
+            desc:'메이지 시대 창고 리노베이션 복합 쇼핑몰. 항구 뷰·기념품 구매 최적.',
+            duration:'1시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'09:00',note:'하코다테역 도보 15분'} },
+          { id:'ah5_airport', name:'공항 이동', required:true, infoOnly:true, tags:['이동'],
+            desc:'귀국 공항 선택에 따라 하코다테공항(20분) 또는 아오모리공항(신칸센+버스 2시간)으로 이동.',
+            duration:'20분~2시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'11:00',note:'선택한 귀국 공항으로 이동'} },
+        ]
+      },
+    ],
+  },
+},
+
+/* ──────────────────────────────────────────────────────────
+   여행 7 : 하와이
+────────────────────────────────────────────────────────── */
+{
+  id: 'hawaii',
+  title: '하와이 (오아후)',
+  subtitle: '진주만 · 이올라니 왕궁 · 다이아몬드헤드 · 노스쇼어',
+
+  durationOptions: [
+    { label: '3박4일', value: '4d' },
+    { label: '4박5일', value: '5d' },
+  ],
+
+  partyOptions: [
+    { label: '👫 2인', value: '2' },
+    { label: '👨‍👩‍👧‍👦 4인', value: '4' },
+    { label: '🏠 5인', value: '5' },
+  ],
+
+  departureOptions: [
+    { label: '✈ 인천', value: 'ICN', airport: '인천 → 호놀룰루 (다니엘 이노우에 국제공항)' },
+    { label: '✈ 김해', value: 'PUS', airport: '김해 → 호놀룰루 (경유)' },
+    { label: '✈ 김포', value: 'GMP', airport: '김포 → 호놀룰루 (경유)' },
+  ],
+
+  airportOptions: [
+    { label: '호놀룰루', value: 'HNL', desc: '와이키키에서 버스·택시 약 20분' },
+  ],
+
+  flightInfo(dep, airport) {
+    const go = {
+      ICN: '인천 → 호놀룰루 직항 (약 9시간)',
+      PUS: '김해 → 호놀룰루 (경유, 약 12~14시간)',
+      GMP: '김포 → 호놀룰루 (경유, 약 12~14시간)',
+    }[dep] || '';
+    return { go, back: '호놀룰루 → 인천 직항 (약 10시간. 날짜 변경선 주의 — 출발 다음날 도착)' };
+  },
+
+  fixedCosts: [
+    { label: '항공권 (왕복 추정)',         costs: {'2':1400000,'4':2800000,'5':3500000} },
+    { label: '렌터카 (노스쇼어 등)',        costs: {'2':80000,'4':80000,'5':80000} },
+    { label: '진주만 패스포트 티켓',        costs: {'2':220000,'4':440000,'5':550000} },
+    { label: '식비 추정 (외식 물가 높음)', costs: {'2':80000,'4':160000,'5':200000} },
+    { label: '숙박 추정 (와이키키 기준)', costs: {'2':500000,'4':800000,'5':1000000} },
+  ],
+
+  durationDays: {
+    '4d': [
+      {
+        label:'Day 1', title:'역사 & 왕궁 & 와이키키',
+        date:'미정', color:'#2A7AAA', night:'와이키키 숙박',
+        spots:[
+          { id:'hw_iolani', name:'이올라니 궁전', required:true, tags:['역사','왕궁'],
+            desc:'미국 내 유일한 왕실 거처. 1882년 건립. 하와이 왕국 마지막 군주 거처. 음성 가이드 제공. 사전 예약 권장.',
+            duration:'1.5시간', costs:{'2':30000,'4':60000,'5':75000},
+            itin:{time:'09:00',note:'와이키키 → 다운타운 버스 20분. 화~토 09:00~16:00'} },
+          { id:'hw_kamehameha', name:'카메하메하 대왕 동상', required:false, tags:['역사'],
+            desc:'하와이 통일 대왕 카메하메하 1세 동상. 이올라니 궁전 맞은편. 무료.',
+            duration:'15분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'10:45',note:'이올라니 궁전 맞은편'} },
+          { id:'hw_bishop', name:'비숍 박물관', required:false, tags:['역사','박물관'],
+            desc:'하와이·폴리네시아 문화 세계 최대 컬렉션. 왕족 유물·자연사·우주관 포함. 반나절 소요.',
+            duration:'2시간', costs:{'2':60000,'4':120000,'5':150000},
+            itin:{time:'13:00',note:'다운타운에서 버스 20분. 화~일 09:00~17:00'} },
+          { id:'hw_waikiki_sunset', name:'와이키키 비치 선셋 & 듀크스', required:false, tags:['자연'],
+            desc:'다이아몬드헤드 배경 일몰. 전설의 서퍼 듀크 카하나모쿠 동상. 듀크스 레스토랑 마이타이 1잔.',
+            duration:'1.5시간', costs:{'2':30000,'4':60000,'5':75000},
+            itin:{time:'18:00',note:'와이키키 해변 산책'} },
+        ]
+      },
+      {
+        label:'Day 2', title:'진주만 역사',
+        date:'미정', color:'#1A3A6A', night:'와이키키 숙박',
+        spots:[
+          { id:'hw_arizona', name:'USS 애리조나 기념관', required:true, tags:['역사','전쟁'],
+            desc:'1941년 12월 7일 공습으로 침몰한 전함 위에 세워진 추모 기념관. 무료(보트 탑승 포함). 반드시 사전 예약 필수.',
+            duration:'2시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'07:00',note:'와이키키 버스 1시간. 이른 방문 필수. recreation.gov 사전 예약'} },
+          { id:'hw_missouri', name:'USS 미주리함 박물관', required:false, tags:['역사','전쟁'],
+            desc:'2차 대전 종전 항복 서명 현장. 갑판에서 포탑 등 내부 투어. 진주만 패스포트 포함.',
+            duration:'1.5시간', costs:{'2':50000,'4':100000,'5':125000},
+            itin:{time:'10:00',note:'진주만 내 셔틀버스 이동'} },
+          { id:'hw_aviation', name:'진주만 항공 박물관', required:false, tags:['역사','전쟁'],
+            desc:'2차 대전 당시 항공기·제로센 전시. 당일 공습에 쓰인 격납고 건물 원형 보존.',
+            duration:'1.5시간', costs:{'2':40000,'4':80000,'5':100000},
+            itin:{time:'12:00',note:'포드 아일랜드 내 이동'} },
+          { id:'hw_bowfin', name:'USS 보핀 잠수함 박물관', required:false, tags:['역사','전쟁'],
+            desc:'진주만의 복수자 별명 잠수함 내부 투어. 진주만 패스포트 포함.',
+            duration:'1시간', costs:{'2':25000,'4':50000,'5':62500},
+            itin:{time:'14:00',note:'진주만 방문자 센터 옆'} },
+        ]
+      },
+      {
+        label:'Day 3', title:'다이아몬드헤드 & 자연',
+        date:'미정', color:'#2A8A5A', night:'와이키키 숙박',
+        spots:[
+          { id:'hw_diamond', name:'다이아몬드헤드 하이킹', required:true, tags:['자연','역사'],
+            desc:'고대 화산 분화구. 왕복 1.6km. 정상 오아후 파노라마. 군사 벙커 통과. 사전 예약 필수(gostateparks.hawaii.gov).',
+            duration:'2시간', costs:{'2':10000,'4':20000,'5':25000},
+            itin:{time:'07:00',note:'이른 아침 필수 — 더워지기 전. 주차 $10 또는 버스 이용'} },
+          { id:'hw_hanauma', name:'하나우마 베이 스노클링', required:false, tags:['자연'],
+            desc:'산호초·열대어 스노클링 명소. 입장 인원 제한. 사전 온라인 예약 필수(hanauma.online). 화요일 휴장.',
+            duration:'3시간', costs:{'2':30000,'4':60000,'5':75000},
+            itin:{time:'07:00',note:'와이키키 → 버스 40분. 화요일 휴장 주의'} },
+          { id:'hw_pali', name:'누우아누 팔리 전망대', required:false, tags:['역사','자연'],
+            desc:'1795년 카메하메하 대왕 오아후 통일 전투 현장. 강풍과 절벽 위 윈드워드 해안 파노라마. 주차 $7.',
+            duration:'45분', costs:{'2':7000,'4':14000,'5':17500},
+            itin:{time:'11:00',note:'렌터카 또는 투어버스 추천'} },
+          { id:'hw_koko', name:'코코헤드 분화구 하이킹', required:false, tags:['자연'],
+            desc:'1,048개 계단 구 군용 철도 레일 등반. 정상에서 코코 마리나·하나우마 베이 조망. 무료.',
+            duration:'2시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'07:00',note:'와이키키 → 버스 45분. 이른 방문 필수'} },
+        ]
+      },
+      {
+        label:'Day 4', title:'귀국',
+        date:'미정', color:'#888780', night:null,
+        spots:[
+          { id:'hw_aloha_mkt', name:'알라 모아나 센터 & 기념품', required:false, tags:['쇼핑'],
+            desc:'미국 최대 규모 야외 쇼핑몰. 마카다미아 너트·코나 커피·아로하 셔츠 기념품 구매.',
+            duration:'1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'09:00',note:'와이키키 도보 20분'} },
+          { id:'hw_airport_hnl', name:'호놀룰루공항 이동', required:true, infoOnly:true, tags:['이동'],
+            desc:'와이키키 → 호놀룰루공항 버스 20분 또는 택시 $20. 출발 3시간 전 도착 권장.',
+            duration:'20분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'12:00',note:'국제선 3시간 전 도착 권장'} },
+        ]
+      },
+    ],
+
+    '5d': [
+      {
+        label:'Day 1', title:'역사 & 왕궁',
+        date:'미정', color:'#2A7AAA', night:'와이키키 숙박',
+        spots:[
+          { id:'hw5_iolani', name:'이올라니 궁전', required:true, tags:['역사','왕궁'],
+            desc:'미국 내 유일한 왕실 거처. 하와이 왕국 마지막 군주 이야기. 사전 예약 권장.',
+            duration:'1.5시간', costs:{'2':30000,'4':60000,'5':75000},
+            itin:{time:'09:00',note:'다운타운 버스 20분'} },
+          { id:'hw5_bishop', name:'비숍 박물관', required:true, tags:['역사','박물관'],
+            desc:'하와이·폴리네시아 세계 최대 컬렉션. 왕족 유물·자연사·우주관.',
+            duration:'2.5시간', costs:{'2':60000,'4':120000,'5':150000},
+            itin:{time:'13:00',note:'다운타운 버스 20분'} },
+          { id:'hw5_waikiki', name:'와이키키 비치 & 듀크 동상', required:false, tags:['자연'],
+            desc:'하와이 서핑의 성지. 전설의 서퍼 카하나모쿠 동상. 일몰 감상.',
+            duration:'1시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'18:00',note:'와이키키 해변'} },
+        ]
+      },
+      {
+        label:'Day 2', title:'진주만 역사',
+        date:'미정', color:'#1A3A6A', night:'와이키키 숙박',
+        spots:[
+          { id:'hw5_arizona', name:'USS 애리조나 기념관', required:true, tags:['역사','전쟁'],
+            desc:'1941년 공습 침몰 전함 위 추모 기념관. 무료(보트 탑승 포함). recreation.gov 사전 예약 필수.',
+            duration:'2시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'07:00',note:'이른 방문 필수'} },
+          { id:'hw5_missouri', name:'USS 미주리함 & 항공 박물관', required:false, tags:['역사','전쟁'],
+            desc:'종전 항복 서명 현장 + 당시 격납고 보존 항공 박물관. 패스포트 티켓으로 통합 관람.',
+            duration:'3시간', costs:{'2':90000,'4':180000,'5':225000},
+            itin:{time:'10:00',note:'진주만 패스포트 티켓 추천'} },
+        ]
+      },
+      {
+        label:'Day 3', title:'다이아몬드헤드 & 해안',
+        date:'미정', color:'#2A8A5A', night:'와이키키 숙박',
+        spots:[
+          { id:'hw5_diamond', name:'다이아몬드헤드 하이킹', required:true, tags:['자연','역사'],
+            desc:'화산 분화구 하이킹. 정상 오아후 파노라마. 사전 예약 필수.',
+            duration:'2시간', costs:{'2':10000,'4':20000,'5':25000},
+            itin:{time:'07:00',note:'이른 아침 필수'} },
+          { id:'hw5_hanauma', name:'하나우마 베이 스노클링', required:false, tags:['자연'],
+            desc:'산호초·열대어. 사전 예약 필수. 화요일 휴장.',
+            duration:'3시간', costs:{'2':30000,'4':60000,'5':75000},
+            itin:{time:'07:00',note:'화요일 휴장 주의'} },
+          { id:'hw5_pali', name:'누우아누 팔리 전망대', required:false, tags:['역사','자연'],
+            desc:'카메하메하 통일 전투 현장. 강풍과 절벽 위 파노라마.',
+            duration:'45분', costs:{'2':7000,'4':14000,'5':17500},
+            itin:{time:'11:00',note:'렌터카 추천'} },
+        ]
+      },
+      {
+        label:'Day 4', title:'노스쇼어 드라이브',
+        date:'미정', color:'#8A5A2A', night:'와이키키 숙박',
+        spots:[
+          { id:'hw5_dole', name:'돌 파인애플 농장', required:false, tags:['문화','자연'],
+            desc:'하와이 파인애플 역사. 거대 파인애플 미로. 파인애플 소프트크림 명물.',
+            duration:'1시간', costs:{'2':20000,'4':40000,'5':50000},
+            itin:{time:'09:00',note:'와이키키 → 렌터카 1시간'} },
+          { id:'hw5_north', name:'노스쇼어 & 와이메아 베이', required:true, tags:['자연'],
+            desc:'세계 최고 서퍼 성지. 겨울(11~3월) 10m 파도. 여름 잔잔한 수영. 새우 트럭 명물.',
+            duration:'3시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'11:00',note:'렌터카 필수. 와이키키에서 1시간'} },
+          { id:'hw5_polynesian', name:'폴리네시안 문화 센터', required:false, tags:['역사','문화'],
+            desc:'하와이·통가·피지 등 6개 섬 문화 재현. 저녁 알리이 루아우 쇼 포함.',
+            duration:'4~5시간', costs:{'2':220000,'4':440000,'5':550000},
+            itin:{time:'12:00',note:'노스쇼어 근처. 저녁 루아우 쇼까지 관람 추천'} },
+        ]
+      },
+      {
+        label:'Day 5', title:'귀국',
+        date:'미정', color:'#888780', night:null,
+        spots:[
+          { id:'hw5_alamo', name:'알라 모아나 센터 기념품', required:false, tags:['쇼핑'],
+            desc:'미국 최대 야외 쇼핑몰. 마카다미아·코나커피·아로하 셔츠 구매 최적.',
+            duration:'1.5시간', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'09:00',note:'와이키키 도보 20분'} },
+          { id:'hw5_airport', name:'호놀룰루공항 이동', required:true, infoOnly:true, tags:['이동'],
+            desc:'와이키키 → 호놀룰루공항 버스 20분 또는 택시 $20.',
+            duration:'20분', costs:{'2':0,'4':0,'5':0},
+            itin:{time:'12:00',note:'출발 3시간 전 공항 도착 권장'} },
+        ]
+      },
+    ],
+  },
+},
+
 ]; // END TRIPS
 
 /* ═══════════════════════════════════════════════════════════
